@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, Suspense } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { customerInvoiceFunctions, customerFunctions, projectFunctions, customerPaymentFunctions, CustomerInvoice, Customer, Project, CustomerPayment } from '../../../lib/database';
 import Header from '../../Header';
 
@@ -18,6 +18,7 @@ function InvoiceDetailContent() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -68,6 +69,21 @@ function InvoiceDetailContent() {
     return new Date(dateString).toLocaleDateString('tr-TR');
   };
 
+  // Fatura silme fonksiyonu
+  const handleDelete = async () => {
+    if (window.confirm('Bu faturayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+      try {
+        setLoading(true);
+        await customerInvoiceFunctions.delete(invoiceId);
+        router.push('/invoices');
+      } catch (error) {
+        console.error('Fatura silinirken hata oluştu:', error);
+        setError('Fatura silinirken bir hata oluştu.');
+        setLoading(false);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -112,6 +128,12 @@ function InvoiceDetailContent() {
                 Ödeme Ekle
               </Link>
             )}
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-colors"
+            >
+              Faturayı Sil
+            </button>
           </div>
         </div>
 

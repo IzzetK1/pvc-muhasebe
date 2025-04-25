@@ -640,6 +640,23 @@ export const customerFunctions = {
 
   // Müşteri sil
   delete: async (id: string) => {
+    // Önce müşteriye ait ödemeleri sil
+    const { error: paymentsError } = await supabase
+      .from('customer_payments')
+      .delete()
+      .eq('customer_id', id);
+
+    if (paymentsError) throw paymentsError;
+
+    // Sonra müşteriye ait faturaları sil
+    const { error: invoicesError } = await supabase
+      .from('customer_invoices')
+      .delete()
+      .eq('customer_id', id);
+
+    if (invoicesError) throw invoicesError;
+
+    // Son olarak müşteriyi sil
     const { error } = await supabase
       .from('customers')
       .delete()
@@ -879,6 +896,15 @@ export const customerInvoiceFunctions = {
 
   // Fatura sil
   delete: async (id: string) => {
+    // Önce faturaya ait ödemeleri sil
+    const { error: paymentsError } = await supabase
+      .from('customer_payments')
+      .delete()
+      .eq('invoice_id', id);
+
+    if (paymentsError) throw paymentsError;
+
+    // Sonra faturayı sil
     const { error } = await supabase
       .from('customer_invoices')
       .delete()
