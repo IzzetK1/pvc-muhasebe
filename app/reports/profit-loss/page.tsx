@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { transactionFunctions, Transaction } from '../../../lib/database';
-import Header from '../../components/Header';
+import Header from '../../../components/Header';
 
 export default function ProfitLossReport() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -76,8 +76,8 @@ export default function ProfitLossReport() {
     profit: monthlyData.reduce((sum, month) => sum + month.profit, 0)
   };
 
-  const yearlyProfitMargin = yearlyTotals.income > 0 
-    ? (yearlyTotals.profit / yearlyTotals.income) * 100 
+  const yearlyProfitMargin = yearlyTotals.income > 0
+    ? (yearlyTotals.profit / yearlyTotals.income) * 100
     : 0;
 
   // Ay adlarını al

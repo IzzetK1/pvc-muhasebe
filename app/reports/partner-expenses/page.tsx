@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../../lib/database';
-import Header from '../../components/Header';
+import Header from '../../../components/Header';
 
 export default function PartnerExpensesReport() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -19,11 +19,11 @@ export default function PartnerExpensesReport() {
     async function loadData() {
       try {
         setLoading(true);
-        
+
         // Ortakları getir
         const partnersData = await partnerFunctions.getAll();
         setPartners(partnersData);
-        
+
         // Tüm ortak harcamalarını getir
         const allExpenses = await partnerExpenseFunctions.getAll();
         setExpenses(allExpenses);
@@ -65,7 +65,7 @@ export default function PartnerExpensesReport() {
 
   // Ortak bazlı harcamaları hesapla
   const expensesByPartner: Record<string, number> = {};
-  
+
   filteredExpenses.forEach(expense => {
     const partnerId = expense.partner_id;
     expensesByPartner[partnerId] = (expensesByPartner[partnerId] || 0) + expense.amount;
@@ -73,7 +73,7 @@ export default function PartnerExpensesReport() {
 
   // Kategori bazlı harcamaları hesapla
   const expensesByCategory: Record<string, number> = {};
-  
+
   filteredExpenses.forEach(expense => {
     const categoryId = expense.category_id || 'uncategorized';
     expensesByCategory[categoryId] = (expensesByCategory[categoryId] || 0) + expense.amount;
@@ -245,10 +245,10 @@ export default function PartnerExpensesReport() {
                 <tbody>
                   {partners.map((partner) => {
                     const partnerExpense = expensesByPartner[partner.id] || 0;
-                    const percentage = totalExpenses > 0 
-                      ? (partnerExpense / totalExpenses) * 100 
+                    const percentage = totalExpenses > 0
+                      ? (partnerExpense / totalExpenses) * 100
                       : 0;
-                    
+
                     return (
                       <tr key={partner.id} className="border-b hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium">{partner.name}</td>
@@ -303,7 +303,7 @@ export default function PartnerExpensesReport() {
                 <tbody>
                   {filteredExpenses.map((expense) => {
                     const partner = partners.find(p => p.id === expense.partner_id);
-                    
+
                     return (
                       <tr key={expense.id} className="border-b hover:bg-gray-50">
                         <td className="px-6 py-4">{new Date(expense.date).toLocaleDateString('tr-TR')}</td>

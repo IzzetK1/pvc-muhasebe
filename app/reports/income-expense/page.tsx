@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { transactionFunctions, Transaction } from '../../../lib/database';
-import Header from '../../components/Header';
+import Header from '../../../components/Header';
 
 export default function IncomeExpenseReport() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
