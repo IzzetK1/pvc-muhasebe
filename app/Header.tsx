@@ -1,12 +1,26 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  // Kullanıcı bilgilerini localStorage'dan al
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Kullanıcı bilgileri çözümlenemedi:', error);
+      }
+    }
+  }, []);
 
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`);
@@ -25,6 +39,12 @@ export default function Header() {
   // Mobil menüyü aç/kapat
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Çıkış yap
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    router.push('/login');
   };
 
   return (
@@ -77,8 +97,8 @@ export default function Header() {
           </button>
 
           {/* Masaüstü Menü */}
-          <nav className="hidden md:block">
-            <ul className="flex space-x-6">
+          <nav className="hidden md:flex items-center">
+            <ul className="flex space-x-6 mr-6">
               {menuItems.map((item) => (
                 <li key={item.path}>
                   <Link
@@ -90,6 +110,15 @@ export default function Header() {
                 </li>
               ))}
             </ul>
+
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+              >
+                Çıkış Yap
+              </button>
+            )}
           </nav>
         </div>
 
@@ -108,6 +137,20 @@ export default function Header() {
                   </Link>
                 </li>
               ))}
+
+              {user && (
+                <li>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left py-1 hover:bg-red-700 bg-red-600 px-2 rounded"
+                  >
+                    Çıkış Yap
+                  </button>
+                </li>
+              )}
             </ul>
           </nav>
         )}

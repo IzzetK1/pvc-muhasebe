@@ -2,10 +2,23 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { transactionFunctions, partnerExpenseFunctions, customerFunctions, projectFunctions, Transaction, Customer, Project } from '../../lib/database';
 import Header from '../Header';
 
 export default function Dashboard() {
+  const router = useRouter();
+
+  // Kullanıcı kontrolü
+  useEffect(() => {
+    // localStorage'dan kullanıcı bilgisini al
+    const userStr = localStorage.getItem('user');
+
+    // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
+    if (!userStr) {
+      router.push('/login');
+    }
+  }, [router]);
   const [financialSummary, setFinancialSummary] = useState({
     totalIncome: 0,
     totalExpense: 0,

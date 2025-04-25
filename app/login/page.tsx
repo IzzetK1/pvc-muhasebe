@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import bcrypt from "bcryptjs";
+
+// Supabase istemcisini oluştur
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Client tarafında çalışıyorsa ve değişkenler tanımlıysa supabase istemcisini oluştur
+const supabase = (typeof window !== 'undefined' && supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,7 +24,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username || !password) {
       setError("Kullanıcı adı ve şifre gereklidir");
       return;
@@ -24,17 +34,43 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
 
-      const result = await signIn("credentials", {
-        redirect: false,
-        username,
-        password,
-      });
+      // Supabase istemcisi yoksa hata ver
+      if (!supabase) {
+        throw new Error('Supabase istemcisi oluşturulamadı');
+      }
 
-      if (result?.error) {
+      // Kullanıcıyı veritabanında ara
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("username", username)
+        .single();
+
+      if (userError || !user) {
         setError("Geçersiz kullanıcı adı veya şifre");
         setLoading(false);
         return;
       }
+
+      // Şifreyi kontrol et (client tarafında)
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        setError("Geçersiz kullanıcı adı veya şifre");
+        setLoading(false);
+        return;
+      }
+
+      // Kullanıcı bilgilerini localStorage'a kaydet
+      localStorage.setItem('user', JSON.stringify({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role
+      }));
 
       // Başarılı giriş
       router.push("/dashboard");

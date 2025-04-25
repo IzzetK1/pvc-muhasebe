@@ -1,8 +1,8 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
 
+// Geçici olarak SessionProvider'ı devre dışı bıraktık
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return <>{children}</>;
 }
