@@ -143,25 +143,25 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Financial Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-medium text-gray-500">Toplam Gelir</h3>
-                <p className="text-2xl font-bold text-green-600 mt-2">{formatCurrency(financialSummary.totalIncome)}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-medium text-gray-500">Toplam Gelir</h3>
+                <p className="text-lg md:text-2xl font-bold text-green-600 mt-2">{formatCurrency(financialSummary.totalIncome)}</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-medium text-gray-500">Toplam Gider</h3>
-                <p className="text-2xl font-bold text-red-600 mt-2">{formatCurrency(financialSummary.totalExpense)}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-medium text-gray-500">Toplam Gider</h3>
+                <p className="text-lg md:text-2xl font-bold text-red-600 mt-2">{formatCurrency(financialSummary.totalExpense)}</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-medium text-gray-500">Kar</h3>
-                <p className="text-2xl font-bold text-blue-600 mt-2">{formatCurrency(financialSummary.profit)}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-medium text-gray-500">Kar</h3>
+                <p className="text-lg md:text-2xl font-bold text-blue-600 mt-2">{formatCurrency(financialSummary.profit)}</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-medium text-gray-500">Kar Marjı</h3>
-                <p className="text-2xl font-bold text-purple-600 mt-2">%{financialSummary.profitMargin.toFixed(1)}</p>
+              <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-medium text-gray-500">Kar Marjı</h3>
+                <p className="text-lg md:text-2xl font-bold text-purple-600 mt-2">%{financialSummary.profitMargin.toFixed(1)}</p>
               </div>
             </div>
           </>
@@ -184,28 +184,46 @@ export default function Dashboard() {
                     <p>Henüz işlem kaydı bulunmamaktadır.</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="pb-3 pr-4">Tarih</th>
-                          <th className="pb-3 pr-4">Açıklama</th>
-                          <th className="pb-3 text-right">Tutar</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {financialSummary.recentTransactions.map((transaction) => (
-                          <tr key={transaction.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 pr-4">{new Date(transaction.date).toLocaleDateString('tr-TR')}</td>
-                            <td className="py-3 pr-4">{transaction.description}</td>
-                            <td className={`py-3 text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(transaction.amount)}
-                            </td>
+                  <>
+                    {/* Masaüstü Görünüm */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="pb-3 pr-4">Tarih</th>
+                            <th className="pb-3 pr-4">Açıklama</th>
+                            <th className="pb-3 text-right">Tutar</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {financialSummary.recentTransactions.map((transaction) => (
+                            <tr key={transaction.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3 pr-4">{new Date(transaction.date).toLocaleDateString('tr-TR')}</td>
+                              <td className="py-3 pr-4">{transaction.description}</td>
+                              <td className={`py-3 text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatCurrency(transaction.amount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobil Görünüm */}
+                    <div className="md:hidden">
+                      {financialSummary.recentTransactions.map((transaction) => (
+                        <div key={transaction.id} className="border-b py-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm text-gray-600">{new Date(transaction.date).toLocaleDateString('tr-TR')}</span>
+                            <span className={`font-medium ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(transaction.amount)}
+                            </span>
+                          </div>
+                          <div className="text-sm">{transaction.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 
