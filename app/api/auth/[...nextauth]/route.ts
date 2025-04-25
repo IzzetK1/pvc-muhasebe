@@ -4,8 +4,14 @@ import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
 
 // Supabase istemcisini oluştur
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Supabase bağlantısını kontrol et
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Supabase URL ve API anahtarı gereklidir. Lütfen .env dosyasını kontrol edin.");
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const handler = NextAuth({

@@ -8,9 +8,13 @@ import Header from '../../Header';
 import Link from 'next/link';
 
 // Supabase istemcisini oluştur
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Client tarafında çalışıyorsa ve değişkenler tanımlıysa supabase istemcisini oluştur
+const supabase = (typeof window !== 'undefined' && supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 interface User {
   id: string;
@@ -37,7 +41,7 @@ export default function LogsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Filtreleme durumu
   const [filters, setFilters] = useState({
     userId: '',
@@ -74,6 +78,11 @@ export default function LogsPage() {
 
   const loadUsers = async () => {
     try {
+      // Supabase istemcisi yoksa hata ver
+      if (!supabase) {
+        throw new Error('Supabase istemcisi oluşturulamadı');
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('id, username, name')
@@ -90,59 +99,64 @@ export default function LogsPage() {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      
+
+      // Supabase istemcisi yoksa hata ver
+      if (!supabase) {
+        throw new Error('Supabase istemcisi oluşturulamadı');
+      }
+
       // Temel sorgu
       let query = supabase
         .from('activity_logs')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
-      
+
       // Filtreleri uygula
       if (filters.userId) {
         query = query.eq('user_id', filters.userId);
       }
-      
+
       if (filters.action) {
         query = query.eq('action', filters.action);
       }
-      
+
       if (filters.entityType) {
         query = query.eq('entity_type', filters.entityType);
       }
-      
+
       if (filters.startDate) {
         query = query.gte('created_at', filters.startDate);
       }
-      
+
       if (filters.endDate) {
         // Bitiş tarihine 1 gün ekle (gün sonuna kadar)
         const endDate = new Date(filters.endDate);
         endDate.setDate(endDate.getDate() + 1);
         query = query.lt('created_at', endDate.toISOString());
       }
-      
+
       // Sayfalama
       const from = (page - 1) * logsPerPage;
       const to = from + logsPerPage - 1;
       query = query.range(from, to);
-      
+
       const { data, error, count } = await query;
-      
+
       if (error) throw error;
-      
+
       // Kullanıcı bilgilerini ekle
       const logsWithUserInfo = await Promise.all((data || []).map(async (log) => {
         const user = users.find(u => u.id === log.user_id);
         return { ...log, user };
       }));
-      
+
       setLogs(logsWithUserInfo);
-      
+
       // Toplam sayfa sayısını hesapla
       if (count !== null) {
         setTotalPages(Math.ceil(count / logsPerPage));
       }
-      
+
       setError(null);
     } catch (error) {
       console.error('Loglar yüklenirken hata:', error);
@@ -240,7 +254,7 @@ export default function LogsPage() {
         {/* Filtreler */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Filtreler</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -261,7 +275,7 @@ export default function LogsPage() {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
                 İşlem Tipi
@@ -286,7 +300,7 @@ export default function LogsPage() {
                 <option value="other">Diğer</option>
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="entityType" className="block text-sm font-medium text-gray-700 mb-1">
                 Varlık Tipi
@@ -309,7 +323,7 @@ export default function LogsPage() {
                 <option value="system">Sistem</option>
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
                 Başlangıç Tarihi
@@ -323,7 +337,7 @@ export default function LogsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            
+
             <div>
               <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
                 Bitiş Tarihi
@@ -338,7 +352,7 @@ export default function LogsPage() {
               />
             </div>
           </div>
-          
+
           <div className="mt-4 flex justify-end">
             <button
               onClick={resetFilters}
@@ -402,7 +416,7 @@ export default function LogsPage() {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* Mobil Görünüm */}
               <div className="md:hidden">
                 {logs.map(log => (
@@ -411,7 +425,7 @@ export default function LogsPage() {
                       <div className="font-medium">{log.user?.name || log.user?.username || log.user_id}</div>
                       <div className="text-sm text-gray-500">{formatDate(log.created_at)}</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-2 text-sm mb-2">
                       <div>
                         <span className="text-gray-600">İşlem:</span>
@@ -434,7 +448,7 @@ export default function LogsPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {log.details && (
                       <details className="mt-2">
                         <summary className="cursor-pointer text-blue-600 hover:underline text-sm">Detaylar</summary>
@@ -448,7 +462,7 @@ export default function LogsPage() {
               </div>
             </>
           )}
-          
+
           {/* Sayfalama */}
           {totalPages > 1 && (
             <div className="px-4 py-3 bg-gray-50 border-t flex items-center justify-between">

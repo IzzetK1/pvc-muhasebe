@@ -2,11 +2,15 @@ import { createClient } from '@supabase/supabase-js';
 import { getSession } from 'next-auth/react';
 
 // Supabase istemcisini oluştur
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export type LogAction = 
+// Client tarafında çalışıyorsa ve değişkenler tanımlıysa supabase istemcisini oluştur
+const supabase = (typeof window !== 'undefined' && supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
+
+export type LogAction =
   | 'create'
   | 'update'
   | 'delete'
@@ -18,7 +22,7 @@ export type LogAction =
   | 'payment'
   | 'other';
 
-export type EntityType = 
+export type EntityType =
   | 'customer'
   | 'project'
   | 'transaction'
@@ -56,6 +60,12 @@ export async function logActivity(
       ipAddress = 'client';
     }
 
+    // Supabase istemcisi yoksa hata ver
+    if (!supabase) {
+      console.error('Supabase istemcisi oluşturulamadı');
+      return;
+    }
+
     // Log kaydını oluştur
     const { data, error } = await supabase
       .from('activity_logs')
@@ -79,20 +89,20 @@ export async function logActivity(
 }
 
 // Özel log fonksiyonları
-export const logCustomerActivity = (action: LogAction, customerId: string, details?: LogDetails) => 
+export const logCustomerActivity = (action: LogAction, customerId: string, details?: LogDetails) =>
   logActivity(action, 'customer', customerId, details);
 
-export const logProjectActivity = (action: LogAction, projectId: string, details?: LogDetails) => 
+export const logProjectActivity = (action: LogAction, projectId: string, details?: LogDetails) =>
   logActivity(action, 'project', projectId, details);
 
-export const logTransactionActivity = (action: LogAction, transactionId: string, details?: LogDetails) => 
+export const logTransactionActivity = (action: LogAction, transactionId: string, details?: LogDetails) =>
   logActivity(action, 'transaction', transactionId, details);
 
-export const logPartnerActivity = (action: LogAction, partnerId: string, details?: LogDetails) => 
+export const logPartnerActivity = (action: LogAction, partnerId: string, details?: LogDetails) =>
   logActivity(action, 'partner', partnerId, details);
 
-export const logUserActivity = (action: LogAction, userId: string, details?: LogDetails) => 
+export const logUserActivity = (action: LogAction, userId: string, details?: LogDetails) =>
   logActivity(action, 'user', userId, details);
 
-export const logSystemActivity = (action: LogAction, details?: LogDetails) => 
+export const logSystemActivity = (action: LogAction, details?: LogDetails) =>
   logActivity(action, 'system', undefined, details);

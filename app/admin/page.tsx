@@ -9,9 +9,13 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 
 // Supabase istemcisini oluştur
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Client tarafında çalışıyorsa ve değişkenler tanımlıysa supabase istemcisini oluştur
+const supabase = (typeof window !== 'undefined' && supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 interface User {
   id: string;
@@ -28,7 +32,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Yeni kullanıcı formu
   const [showForm, setShowForm] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -62,6 +66,12 @@ export default function AdminPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+
+      // Supabase istemcisi yoksa hata ver
+      if (!supabase) {
+        throw new Error('Supabase istemcisi oluşturulamadı');
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('id, username, name, email, role, created_at')
@@ -86,17 +96,22 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    
+
     // Validasyon
     if (!newUser.username || !newUser.password || !newUser.name) {
       setFormError('Kullanıcı adı, şifre ve isim alanları zorunludur.');
       return;
     }
-    
+
     try {
+      // Supabase istemcisi yoksa hata ver
+      if (!supabase) {
+        throw new Error('Supabase istemcisi oluşturulamadı');
+      }
+
       // Şifreyi hashle
       const hashedPassword = await bcrypt.hash(newUser.password, 10);
-      
+
       // Kullanıcıyı ekle
       const { data, error } = await supabase
         .from('users')
@@ -108,7 +123,7 @@ export default function AdminPage() {
           role: newUser.role,
         })
         .select();
-      
+
       if (error) {
         if (error.code === '23505') {
           setFormError('Bu kullanıcı adı zaten kullanılıyor.');
@@ -117,7 +132,7 @@ export default function AdminPage() {
         }
         return;
       }
-      
+
       // Formu sıfırla ve kullanıcıları yeniden yükle
       setNewUser({
         username: '',
@@ -141,16 +156,21 @@ export default function AdminPage() {
       alert('Son admin kullanıcısını silemezsiniz!');
       return;
     }
-    
+
     if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
       try {
+        // Supabase istemcisi yoksa hata ver
+        if (!supabase) {
+          throw new Error('Supabase istemcisi oluşturulamadı');
+        }
+
         const { error } = await supabase
           .from('users')
           .delete()
           .eq('id', userId);
-        
+
         if (error) throw error;
-        
+
         // Kullanıcıları yeniden yükle
         loadUsers();
       } catch (error) {
@@ -201,13 +221,13 @@ export default function AdminPage() {
         {showForm && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h3 className="text-lg font-medium text-gray-700 mb-4">Yeni Kullanıcı Ekle</h3>
-            
+
             {formError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 <p>{formError}</p>
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -224,7 +244,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                     Şifre *
@@ -239,7 +259,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Ad Soyad *
@@ -254,7 +274,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     E-posta
@@ -268,7 +288,7 @@ export default function AdminPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                     Rol
@@ -285,7 +305,7 @@ export default function AdminPage() {
                   </select>
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -301,7 +321,7 @@ export default function AdminPage() {
         {/* Kullanıcı Tablosu */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <h3 className="text-lg font-medium text-gray-700 p-6 border-b">Kullanıcılar</h3>
-          
+
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
@@ -354,7 +374,7 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* Mobil Görünüm */}
               <div className="md:hidden">
                 {users.map(user => (
@@ -370,15 +390,15 @@ export default function AdminPage() {
                         {user.role === 'admin' ? 'Yönetici' : 'Kullanıcı'}
                       </span>
                     </div>
-                    
+
                     {user.email && (
                       <div className="text-sm mb-2">{user.email}</div>
                     )}
-                    
+
                     <div className="text-sm text-gray-500 mb-3">
                       Kayıt: {formatDate(user.created_at)}
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <button
                         onClick={() => deleteUser(user.id)}
