@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { transactionFunctions, categoryFunctions, Transaction, Category } from '../../lib/database';
+import Header from '../components/Header';
 
 export default function Transactions() {
   // State tanımlamaları
@@ -115,40 +116,7 @@ export default function Transactions() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">İşlemler</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/reports" className="hover:underline">
-                    Raporlar
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/partners" className="hover:underline">
-                    Ortaklar
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

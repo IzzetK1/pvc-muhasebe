@@ -1,43 +1,11 @@
 import Link from 'next/link';
+import Header from '../components/Header';
 
 export default function Reports() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Raporlar</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/transactions" className="hover:underline">
-                    İşlemler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/partners" className="hover:underline">
-                    Ortaklar
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -51,8 +19,8 @@ export default function Reports() {
             <p className="text-gray-600 mb-4">
               Belirli bir tarih aralığındaki gelir ve giderlerin detaylı dökümü ve özeti.
             </p>
-            <Link 
-              href="/reports/income-expense" 
+            <Link
+              href="/reports/income-expense"
               className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded transition-colors"
             >
               Raporu Görüntüle
@@ -65,8 +33,8 @@ export default function Reports() {
             <p className="text-gray-600 mb-4">
               Aylık ve yıllık bazda kar/zarar durumu ve kar marjı analizi.
             </p>
-            <Link 
-              href="/reports/profit-loss" 
+            <Link
+              href="/reports/profit-loss"
               className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded transition-colors"
             >
               Raporu Görüntüle
@@ -79,8 +47,8 @@ export default function Reports() {
             <p className="text-gray-600 mb-4">
               Ortakların harcamalarının karşılaştırmalı analizi ve detayları.
             </p>
-            <Link 
-              href="/reports/partner-expenses" 
+            <Link
+              href="/reports/partner-expenses"
               className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded transition-colors"
             >
               Raporu Görüntüle
@@ -91,13 +59,13 @@ export default function Reports() {
         {/* Custom Report Generator */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Özel Rapor Oluştur</h3>
-          
+
           <form>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label htmlFor="reportType" className="block text-sm font-medium text-gray-700 mb-2">Rapor Tipi</label>
-                <select 
-                  id="reportType" 
+                <select
+                  id="reportType"
                   name="reportType"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -113,8 +81,8 @@ export default function Reports() {
 
               <div>
                 <label htmlFor="dateRange" className="block text-sm font-medium text-gray-700 mb-2">Tarih Aralığı</label>
-                <select 
-                  id="dateRange" 
+                <select
+                  id="dateRange"
                   name="dateRange"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -135,9 +103,9 @@ export default function Reports() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">Başlangıç Tarihi</label>
-                <input 
-                  type="date" 
-                  id="startDate" 
+                <input
+                  type="date"
+                  id="startDate"
                   name="startDate"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -145,9 +113,9 @@ export default function Reports() {
 
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">Bitiş Tarihi</label>
-                <input 
-                  type="date" 
-                  id="endDate" 
+                <input
+                  type="date"
+                  id="endDate"
                   name="endDate"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -159,27 +127,27 @@ export default function Reports() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Rapor Seçenekleri</label>
               <div className="space-y-2">
                 <label className="inline-flex items-center">
-                  <input 
-                    type="checkbox" 
-                    name="includeCharts" 
+                  <input
+                    type="checkbox"
+                    name="includeCharts"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     defaultChecked
                   />
                   <span className="ml-2 text-gray-700">Grafikleri Dahil Et</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input 
-                    type="checkbox" 
-                    name="includeDetails" 
+                  <input
+                    type="checkbox"
+                    name="includeDetails"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     defaultChecked
                   />
                   <span className="ml-2 text-gray-700">Detaylı İşlem Listesi</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input 
-                    type="checkbox" 
-                    name="includeSummary" 
+                  <input
+                    type="checkbox"
+                    name="includeSummary"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     defaultChecked
                   />
@@ -190,7 +158,7 @@ export default function Reports() {
 
             {/* Submit Button */}
             <div className="flex justify-end">
-              <button 
+              <button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
               >
@@ -203,7 +171,7 @@ export default function Reports() {
         {/* Saved Reports */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Kaydedilmiş Raporlar</h3>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
@@ -221,7 +189,7 @@ export default function Reports() {
                   <td className="px-6 py-4">25.04.2025</td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center space-x-2">
-                      <Link 
+                      <Link
                         href="/reports/view/1"
                         className="text-blue-600 hover:text-blue-800"
                       >
@@ -239,7 +207,7 @@ export default function Reports() {
                   <td className="px-6 py-4">05.04.2025</td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center space-x-2">
-                      <Link 
+                      <Link
                         href="/reports/view/2"
                         className="text-blue-600 hover:text-blue-800"
                       >
