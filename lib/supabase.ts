@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, Session } from '@supabase/supabase-js';
 
 // Supabase bağlantı bilgilerini çevre değişkenlerinden al
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -15,38 +15,38 @@ export const auth = {
       email,
       password,
     });
-    
+
     if (error) throw error;
     return data;
   },
-  
+
   // Kullanıcı kaydı
   signUp: async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
-    
+
     if (error) throw error;
     return data;
   },
-  
+
   // Kullanıcı çıkışı
   signOut: async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     return true;
   },
-  
+
   // Mevcut kullanıcıyı al
   getCurrentUser: async () => {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     return data.user;
   },
-  
+
   // Oturum durumunu izle
-  onAuthStateChange: (callback: (event: string, session: any) => void) => {
+  onAuthStateChange: (callback: (event: string, session: Session | null) => void) => {
     return supabase.auth.onAuthStateChange(callback);
   }
 };

@@ -73,7 +73,14 @@ export default function Transactions() {
       setLoading(true);
 
       // API'den filtrelenmiş verileri al
-      const filters: any = {};
+      type TransactionFilters = {
+        dateFrom?: string;
+        dateTo?: string;
+        type?: string;
+        category_id?: string;
+      };
+
+      const filters: TransactionFilters = {};
 
       if (dateFrom) filters.dateFrom = dateFrom;
       if (dateTo) filters.dateTo = dateTo;

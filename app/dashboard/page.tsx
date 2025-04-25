@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { transactionFunctions, partnerExpenseFunctions, Transaction, PartnerExpense } from '../../lib/database';
+import { transactionFunctions, partnerExpenseFunctions, Transaction } from '../../lib/database';
 
 export default function Dashboard() {
   const [financialSummary, setFinancialSummary] = useState({

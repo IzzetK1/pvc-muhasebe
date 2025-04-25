@@ -22,7 +22,15 @@ export default function NewTransaction({ searchParams }: { searchParams: { type?
     notes: ''
   });
 
-  const [categories, setCategories] = useState<any[]>([]);
+  // Kategori tipi tanımı
+  type Category = {
+    id: string;
+    name: string;
+    type: 'income' | 'expense' | 'partner';
+    description?: string;
+  };
+
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
@@ -51,7 +59,7 @@ export default function NewTransaction({ searchParams }: { searchParams: { type?
   }, [formData.type]);
 
   // Dosya yükleme tamamlandığında
-  const handleFileUpload = (fileId: string, fileUrl: string) => {
+  const handleFileUpload = (fileId: string, _fileUrl: string) => {
     setUploadedFiles(prev => [...prev, fileId]);
   };
 
@@ -69,7 +77,7 @@ export default function NewTransaction({ searchParams }: { searchParams: { type?
 
     try {
       // İşlemi veritabanına kaydet
-      const transaction = await transactionFunctions.create({
+      await transactionFunctions.create({
         date: formData.date,
         description: formData.description,
         amount: parseFloat(formData.amount),
