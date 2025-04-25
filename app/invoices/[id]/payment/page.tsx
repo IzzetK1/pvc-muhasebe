@@ -3,16 +3,18 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { use } from 'react';
 import { customerInvoiceFunctions, customerPaymentFunctions, CustomerInvoice } from '../../../../lib/database';
 import Header from '../../../components/Header';
 
 export default function InvoicePayment() {
   const params = useParams();
+  const resolvedParams = use(params);
   const router = useRouter();
-  const invoiceId = params.id as string;
-  
+  const invoiceId = resolvedParams.id as string;
+
   const [invoice, setInvoice] = useState<CustomerInvoice | null>(null);
-  
+
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: 0,
@@ -20,7 +22,7 @@ export default function InvoicePayment() {
     description: '',
     notes: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -31,7 +33,7 @@ export default function InvoicePayment() {
         // Fatura bilgilerini yükle
         const invoiceData = await customerInvoiceFunctions.getById(invoiceId);
         setInvoice(invoiceData);
-        
+
         // Kalan tutarı form verisine ekle
         const remainingAmount = invoiceData.amount - invoiceData.paid_amount;
         setFormData(prev => ({
@@ -45,13 +47,13 @@ export default function InvoicePayment() {
         setDataLoading(false);
       }
     }
-    
+
     loadData();
   }, [invoiceId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Sayısal değerler için dönüşüm yap
     if (name === 'amount') {
       setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
@@ -208,7 +210,7 @@ export default function InvoicePayment() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="amount" className="block text-gray-700 font-medium mb-2">
                   Tutar <span className="text-red-600">*</span>
@@ -229,7 +231,7 @@ export default function InvoicePayment() {
                   {formatCurrency(formData.amount)}
                 </p>
               </div>
-              
+
               <div>
                 <label htmlFor="payment_type" className="block text-gray-700 font-medium mb-2">
                   Ödeme Tipi <span className="text-red-600">*</span>
@@ -249,7 +251,7 @@ export default function InvoicePayment() {
                   <option value="other">Diğer</option>
                 </select>
               </div>
-              
+
               <div>
                 <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
                   Açıklama
@@ -264,7 +266,7 @@ export default function InvoicePayment() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <label htmlFor="notes" className="block text-gray-700 font-medium mb-2">
                   Notlar
@@ -279,7 +281,7 @@ export default function InvoicePayment() {
                 ></textarea>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-4">
               <Link
                 href={`/invoices/${invoiceId}`}

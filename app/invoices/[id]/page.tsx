@@ -2,19 +2,20 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { use } from 'react';
 import { customerInvoiceFunctions, customerFunctions, projectFunctions, customerPaymentFunctions, CustomerInvoice, Customer, Project, CustomerPayment } from '../../../lib/database';
 import Header from '../../components/Header';
 
 export default function InvoiceDetail() {
   const params = useParams();
-  const invoiceId = params.id as string;
-  
+  const resolvedParams = use(params);
+  const invoiceId = resolvedParams.id as string;
+
   const [invoice, setInvoice] = useState<CustomerInvoice | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [payments, setPayments] = useState<CustomerPayment[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,22 +25,22 @@ export default function InvoiceDetail() {
         // Fatura bilgilerini getir
         const invoiceData = await customerInvoiceFunctions.getById(invoiceId);
         setInvoice(invoiceData);
-        
+
         // Müşteri bilgilerini getir
         const customerData = await customerFunctions.getById(invoiceData.customer_id);
         setCustomer(customerData);
-        
+
         // Proje bilgilerini getir (eğer varsa)
         if (invoiceData.project_id) {
           const projectData = await projectFunctions.getById(invoiceData.project_id);
           setProject(projectData);
         }
-        
+
         // Faturaya ait ödemeleri getir
         // Not: Bu fonksiyon henüz eklenmedi, ama eklenecek
         // const paymentsData = await customerPaymentFunctions.getByInvoiceId(invoiceId);
         // setPayments(paymentsData);
-        
+
         // Şimdilik boş bir dizi kullanıyoruz
         setPayments([]);
       } catch (err) {
@@ -49,7 +50,7 @@ export default function InvoiceDetail() {
         setLoading(false);
       }
     }
-    
+
     loadData();
   }, [invoiceId]);
 
@@ -233,7 +234,7 @@ export default function InvoiceDetail() {
               </Link>
             )}
           </div>
-          
+
           {payments.length === 0 ? (
             <div className="py-4 text-center text-gray-500">
               <p>Bu faturaya ait ödeme bulunmamaktadır.</p>

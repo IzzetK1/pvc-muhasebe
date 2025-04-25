@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { use } from 'react';
 import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../../../lib/database';
 import Header from '../../../components/Header';
 
 export default function PartnerExpenses({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const resolvedParams = use(params);
+  const { id } = resolvedParams;
 
   const [partner, setPartner] = useState<Partner | null>(null);
   const [expenses, setExpenses] = useState<PartnerExpense[]>([]);
