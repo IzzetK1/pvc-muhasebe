@@ -1,33 +1,54 @@
 "use client";
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../lib/database';
+
+// Partner ve harcama bilgilerini birleştiren tip
+type PartnerWithExpenses = Partner & {
+  totalExpenses: number;
+  recentExpenses: PartnerExpense[];
+};
 
 export default function Partners() {
-  // Örnek veri - gerçek uygulamada veritabanından gelecek
-  const partners = [
-    {
-      id: '1',
-      name: 'Mehmet',
-      email: 'mehmet@example.com',
-      totalExpenses: 15000,
-      recentExpenses: [
-        { id: '1', date: '2025-04-15', description: 'Araç yakıt gideri', amount: 1200 },
-        { id: '2', date: '2025-04-10', description: 'İş yemeği', amount: 800 },
-        { id: '3', date: '2025-04-05', description: 'Telefon faturası', amount: 500 },
-      ]
-    },
-    {
-      id: '2',
-      name: 'Abdülaziz',
-      email: 'abdulaziz@example.com',
-      totalExpenses: 12500,
-      recentExpenses: [
-        { id: '4', date: '2025-04-18', description: 'Malzeme alımı', amount: 5000 },
-        { id: '5', date: '2025-04-12', description: 'Araç bakım', amount: 2500 },
-        { id: '6', date: '2025-04-03', description: 'İş yemeği', amount: 1000 },
-      ]
-    },
-  ];
+  const [partners, setPartners] = useState<PartnerWithExpenses[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadPartners() {
+      try {
+        // Tüm ortakları getir
+        const partnersData = await partnerFunctions.getAll();
+
+        // Her ortak için harcama bilgilerini getir
+        const partnersWithExpenses = await Promise.all(
+          partnersData.map(async (partner) => {
+            const expenses = await partnerExpenseFunctions.getByPartnerId(partner.id);
+
+            // Toplam harcama hesapla
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+            // Son 3 harcamayı al
+            const recentExpenses = expenses.slice(0, 3);
+
+            return {
+              ...partner,
+              totalExpenses,
+              recentExpenses
+            };
+          })
+        );
+
+        setPartners(partnersWithExpenses);
+      } catch (error) {
+        console.error('Ortaklar yüklenirken hata oluştu:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPartners();
+  }, []);
 
   // Para birimini formatlama fonksiyonu
   const formatCurrency = (amount: number) => {
@@ -146,42 +167,135 @@ export default function Partners() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Ortak Harcamaları Karşılaştırması</h3>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-gray-600">Ortak</th>
-                  <th className="px-6 py-3 text-gray-600 text-right">Bu Ay</th>
-                  <th className="px-6 py-3 text-gray-600 text-right">Geçen Ay</th>
-                  <th className="px-6 py-3 text-gray-600 text-right">Bu Yıl</th>
-                  <th className="px-6 py-3 text-gray-600 text-right">Toplam</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium">Mehmet</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(2500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(3500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(12000)}</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(15000)}</td>
-                </tr>
-                <tr className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium">Abdülaziz</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(8500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(2000)}</td>
-                  <td className="px-6 py-4 text-right text-red-600">{formatCurrency(10500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(12500)}</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="px-6 py-4 font-medium">Toplam</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(11000)}</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(5500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(22500)}</td>
-                  <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(27500)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {loading ? (
+            <p className="text-center py-4">Yükleniyor...</p>
+          ) : partners.length === 0 ? (
+            <p className="text-center py-4">Henüz ortak bulunmamaktadır.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-gray-600">Ortak</th>
+                    <th className="px-6 py-3 text-gray-600 text-right">Bu Ay</th>
+                    <th className="px-6 py-3 text-gray-600 text-right">Geçen Ay</th>
+                    <th className="px-6 py-3 text-gray-600 text-right">Bu Yıl</th>
+                    <th className="px-6 py-3 text-gray-600 text-right">Toplam</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {partners.map(partner => {
+                    // Tarih filtreleri için bugünün tarihini al
+                    const today = new Date();
+                    const currentYear = today.getFullYear();
+                    const currentMonth = today.getMonth();
+
+                    // Bu ay başlangıç ve bitiş tarihleri
+                    const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                    const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+
+                    // Geçen ay başlangıç ve bitiş tarihleri
+                    const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                    const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+
+                    // Bu yıl başlangıç tarihi
+                    const currentYearStart = new Date(currentYear, 0, 1);
+
+                    // Harcamaları filtreleme
+                    const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                      const expenseDate = new Date(expense.date);
+                      return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                    });
+
+                    const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                      const expenseDate = new Date(expense.date);
+                      return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                    });
+
+                    const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                      const expenseDate = new Date(expense.date);
+                      return expenseDate >= currentYearStart;
+                    });
+
+                    // Toplamları hesaplama
+                    const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                    const lastMonthTotal = lastMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                    const thisYearTotal = thisYearExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+                    return (
+                      <tr key={partner.id} className="border-b hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium">{partner.name}</td>
+                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(thisMonthTotal)}</td>
+                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(lastMonthTotal)}</td>
+                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(thisYearTotal)}</td>
+                        <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(partner.totalExpenses)}</td>
+                      </tr>
+                    );
+                  })}
+
+                  {/* Toplam satırı */}
+                  <tr className="bg-gray-50">
+                    <td className="px-6 py-4 font-medium">Toplam</td>
+                    <td className="px-6 py-4 text-right text-red-600 font-bold">
+                      {formatCurrency(
+                        partners.reduce((sum, partner) => {
+                          const today = new Date();
+                          const currentYear = today.getFullYear();
+                          const currentMonth = today.getMonth();
+                          const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                          const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+
+                          const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                            const expenseDate = new Date(expense.date);
+                            return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                          });
+
+                          return sum + thisMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                        }, 0)
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600 font-bold">
+                      {formatCurrency(
+                        partners.reduce((sum, partner) => {
+                          const today = new Date();
+                          const currentYear = today.getFullYear();
+                          const currentMonth = today.getMonth();
+                          const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                          const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+
+                          const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                            const expenseDate = new Date(expense.date);
+                            return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                          });
+
+                          return sum + lastMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                        }, 0)
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600 font-bold">
+                      {formatCurrency(
+                        partners.reduce((sum, partner) => {
+                          const today = new Date();
+                          const currentYear = today.getFullYear();
+                          const currentYearStart = new Date(currentYear, 0, 1);
+
+                          const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                            const expenseDate = new Date(expense.date);
+                            return expenseDate >= currentYearStart;
+                          });
+
+                          return sum + thisYearExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                        }, 0)
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right text-red-600 font-bold">
+                      {formatCurrency(partners.reduce((sum, partner) => sum + partner.totalExpenses, 0))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Partner Settings */}
