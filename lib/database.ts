@@ -47,6 +47,7 @@ export type Project = {
   end_date?: string;
   status: 'active' | 'completed' | 'cancelled';
   category_id?: string;
+  customer_id?: string;
   total_income: number;
   total_expense: number;
   profit?: number;
@@ -452,6 +453,18 @@ export const projectFunctions = {
     return data;
   },
 
+  // Belirli bir müşterinin projelerini getir
+  getByCustomerId: async (customerId: string) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('start_date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
   // Yeni proje ekle
   create: async (project: Omit<Project, 'id' | 'created_at' | 'updated_at' | 'profit' | 'profit_margin'>) => {
     // Kar ve kar marjını hesapla
@@ -523,6 +536,369 @@ export const projectFunctions = {
 
     if (error) throw error;
     return true;
+  }
+};
+
+// Müşteri tipi
+export type Customer = {
+  id: string;
+  name: string;
+  company_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  tax_id?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// Müşteri ödemesi tipi
+export type CustomerPayment = {
+  id: string;
+  customer_id: string;
+  project_id?: string;
+  date: string;
+  amount: number;
+  payment_type: 'cash' | 'bank_transfer' | 'credit_card' | 'check' | 'other';
+  description?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// Müşteri faturası tipi
+export type CustomerInvoice = {
+  id: string;
+  customer_id: string;
+  project_id?: string;
+  invoice_number: string;
+  date: string;
+  due_date: string;
+  amount: number;
+  paid_amount: number;
+  status: 'unpaid' | 'partially_paid' | 'paid';
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// Müşteri fonksiyonları
+export const customerFunctions = {
+  // Tüm müşterileri getir
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir müşteriyi getir
+  getById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Yeni müşteri ekle
+  create: async (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        ...customer,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Müşteri güncelle
+  update: async (id: string, customer: Partial<Customer>) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .update({
+        ...customer,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Müşteri sil
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  },
+
+  // Müşteri hesap özeti getir
+  getAccountSummary: async (id: string) => {
+    // Müşteri bilgilerini getir
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (customerError) throw customerError;
+
+    // Müşterinin projelerini getir
+    const { data: projects, error: projectsError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('customer_id', id);
+
+    if (projectsError) throw projectsError;
+
+    // Müşterinin faturalarını getir
+    const { data: invoices, error: invoicesError } = await supabase
+      .from('customer_invoices')
+      .select('*')
+      .eq('customer_id', id);
+
+    if (invoicesError) throw invoicesError;
+
+    // Müşterinin ödemelerini getir
+    const { data: payments, error: paymentsError } = await supabase
+      .from('customer_payments')
+      .select('*')
+      .eq('customer_id', id);
+
+    if (paymentsError) throw paymentsError;
+
+    // Toplam fatura tutarı
+    const totalInvoiced = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+
+    // Toplam ödeme tutarı
+    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+
+    // Kalan bakiye (borç)
+    const balance = totalInvoiced - totalPaid;
+
+    return {
+      customer,
+      projects,
+      invoices,
+      payments,
+      summary: {
+        totalInvoiced,
+        totalPaid,
+        balance
+      }
+    };
+  }
+};
+
+// Müşteri ödemeleri fonksiyonları
+export const customerPaymentFunctions = {
+  // Tüm ödemeleri getir
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir müşterinin ödemelerini getir
+  getByCustomerId: async (customerId: string) => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir projenin ödemelerini getir
+  getByProjectId: async (projectId: string) => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Yeni ödeme ekle
+  create: async (payment: Omit<CustomerPayment, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .insert([{
+        ...payment,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Ödeme güncelle
+  update: async (id: string, payment: Partial<CustomerPayment>) => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .update({
+        ...payment,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Ödeme sil
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('customer_payments')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+};
+
+// Müşteri faturaları fonksiyonları
+export const customerInvoiceFunctions = {
+  // Tüm faturaları getir
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir müşterinin faturalarını getir
+  getByCustomerId: async (customerId: string) => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir projenin faturalarını getir
+  getByProjectId: async (projectId: string) => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Yeni fatura ekle
+  create: async (invoice: Omit<CustomerInvoice, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .insert([{
+        ...invoice,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Fatura güncelle
+  update: async (id: string, invoice: Partial<CustomerInvoice>) => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .update({
+        ...invoice,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Fatura sil
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('customer_invoices')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  },
+
+  // Fatura durumunu güncelle
+  updateStatus: async (id: string, paidAmount: number) => {
+    // Önce faturayı al
+    const { data: invoice, error: fetchError } = await supabase
+      .from('customer_invoices')
+      .select('amount, paid_amount')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Yeni ödenen tutarı hesapla
+    const newPaidAmount = invoice.paid_amount + paidAmount;
+
+    // Durumu belirle
+    let status = 'unpaid';
+    if (newPaidAmount >= invoice.amount) {
+      status = 'paid';
+    } else if (newPaidAmount > 0) {
+      status = 'partially_paid';
+    }
+
+    // Faturayı güncelle
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .update({
+        paid_amount: newPaidAmount,
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
   }
 };
 
