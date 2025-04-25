@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { use } from 'react';
 import { customerInvoiceFunctions, customerPaymentFunctions, CustomerInvoice } from '../../../../lib/database';
-import Header from '../../../../components/Header';
+import Header from '../../../Header';
 
 export default function InvoicePayment() {
   const params = useParams();

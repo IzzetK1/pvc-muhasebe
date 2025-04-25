@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../../lib/database';
-import Header from '../../../components/Header';
+import Header from '../../Header';
 
 export default function PartnerExpensesReport() {
   const [partners, setPartners] = useState<Partner[]>([]);
