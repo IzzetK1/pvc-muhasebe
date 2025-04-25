@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../Header';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+
+// Bu sayfayı sunucu tarafında ön işleme yapma
+export const dynamic = 'force-dynamic';
 
 // Supabase istemcisini oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,11 +29,11 @@ interface User {
 }
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   // Yeni kullanıcı formu
   const [showForm, setShowForm] = useState(false);
@@ -44,24 +46,36 @@ export default function AdminPage() {
   });
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Kullanıcı bilgilerini localStorage'dan al
   useEffect(() => {
-    // Kullanıcı oturumu kontrolü
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return;
-    }
+    // Client tarafında çalışıyorsa
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user');
 
-    // Kullanıcı admin değilse dashboard'a yönlendir
-    if (status === 'authenticated' && session?.user?.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
+      if (!userStr) {
+        // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
+        router.push('/login');
+        return;
+      }
 
-    // Kullanıcıları yükle
-    if (status === 'authenticated') {
-      loadUsers();
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+
+        // Kullanıcı admin değilse dashboard'a yönlendir
+        if (userData.role !== 'admin') {
+          router.push('/dashboard');
+          return;
+        }
+
+        // Kullanıcı admin ise kullanıcıları yükle
+        loadUsers();
+      } catch (error) {
+        console.error('Kullanıcı bilgileri çözümlenemedi:', error);
+        router.push('/login');
+      }
     }
-  }, [status, session]);
+  }, [router]);
 
   const loadUsers = async () => {
     try {
@@ -364,9 +378,8 @@ export default function AdminPage() {
                           <button
                             onClick={() => deleteUser(user.id)}
                             className="text-red-600 hover:text-red-800"
-                            disabled={user.id === session?.user?.id}
                           >
-                            {user.id === session?.user?.id ? 'Aktif Kullanıcı' : 'Sil'}
+                            Sil
                           </button>
                         </td>
                       </tr>
@@ -403,9 +416,8 @@ export default function AdminPage() {
                       <button
                         onClick={() => deleteUser(user.id)}
                         className="text-red-600 hover:text-red-800 text-sm"
-                        disabled={user.id === session?.user?.id}
                       >
-                        {user.id === session?.user?.id ? 'Aktif Kullanıcı' : 'Sil'}
+                        Sil
                       </button>
                     </div>
                   </div>

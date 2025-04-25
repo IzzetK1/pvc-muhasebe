@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Header from '../../Header';
 import Link from 'next/link';
+
+// Bu sayfayı sunucu tarafında ön işleme yapma
+export const dynamic = 'force-dynamic';
 
 // Supabase istemcisini oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -35,12 +37,12 @@ interface ActivityLog {
 }
 
 export default function LogsPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   // Filtreleme durumu
   const [filters, setFilters] = useState({
@@ -56,25 +58,37 @@ export default function LogsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const logsPerPage = 20;
 
+  // Kullanıcı bilgilerini localStorage'dan al
   useEffect(() => {
-    // Kullanıcı oturumu kontrolü
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return;
-    }
+    // Client tarafında çalışıyorsa
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user');
 
-    // Kullanıcı admin değilse dashboard'a yönlendir
-    if (status === 'authenticated' && session?.user?.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
+      if (!userStr) {
+        // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
+        router.push('/login');
+        return;
+      }
 
-    // Kullanıcıları ve logları yükle
-    if (status === 'authenticated') {
-      loadUsers();
-      loadLogs();
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+
+        // Kullanıcı admin değilse dashboard'a yönlendir
+        if (userData.role !== 'admin') {
+          router.push('/dashboard');
+          return;
+        }
+
+        // Kullanıcı admin ise verileri yükle
+        loadUsers();
+        loadLogs();
+      } catch (error) {
+        console.error('Kullanıcı bilgileri çözümlenemedi:', error);
+        router.push('/login');
+      }
     }
-  }, [status, session, page, filters]);
+  }, [router, page, filters]);
 
   const loadUsers = async () => {
     try {
