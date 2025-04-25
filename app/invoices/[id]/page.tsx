@@ -1,16 +1,15 @@
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams } from 'next/navigation';
-import { use } from 'react';
 import { customerInvoiceFunctions, customerFunctions, projectFunctions, customerPaymentFunctions, CustomerInvoice, Customer, Project, CustomerPayment } from '../../../lib/database';
 import Header from '../../Header';
 
-export default function InvoiceDetail() {
+// İçerik bileşeni
+function InvoiceDetailContent() {
   const params = useParams();
-  const resolvedParams = use(params);
-  const invoiceId = resolvedParams.id as string;
+  const invoiceId = params.id as string;
 
   const [invoice, setInvoice] = useState<CustomerInvoice | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -291,5 +290,16 @@ export default function InvoiceDetail() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Ana bileşen
+export default function InvoiceDetail() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-xl">Yükleniyor...</p>
+    </div>}>
+      <InvoiceDetailContent />
+    </Suspense>
   );
 }
