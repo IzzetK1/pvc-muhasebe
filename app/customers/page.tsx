@@ -3,63 +3,56 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { customerFunctions, Customer } from '../../lib/database';
+import Header from '../Header';
 
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Müşterileri yükle
   useEffect(() => {
-    async function loadCustomers() {
+    loadCustomers();
+  }, []);
+
+  // Müşterileri yükleme fonksiyonu
+  async function loadCustomers() {
+    try {
+      setLoading(true);
+      const data = await customerFunctions.getAll();
+      setCustomers(data);
+      setError(null);
+    } catch (error) {
+      console.error('Müşteriler yüklenirken hata oluştu:', error);
+      setError('Müşteriler yüklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Müşteri silme fonksiyonu
+  const deleteCustomer = async (id: string) => {
+    if (window.confirm('Bu müşteriyi silmek istediğinizden emin misiniz?')) {
       try {
-        const data = await customerFunctions.getAll();
-        setCustomers(data);
+        setLoading(true);
+        await customerFunctions.delete(id);
+
+        // Müşteri listesini güncelle
+        setCustomers(customers.filter(customer => customer.id !== id));
+        setError(null);
       } catch (error) {
-        console.error('Müşteriler yüklenirken hata oluştu:', error);
+        console.error('Müşteri silinirken hata oluştu:', error);
+        setError('Müşteri silinirken bir hata oluştu. Bu müşteriye ait projeler veya faturalar olabilir.');
       } finally {
         setLoading(false);
       }
     }
-    
-    loadCustomers();
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Müşteriler</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/projects" className="hover:underline">
-                    Projeler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/transactions" className="hover:underline">
-                    İşlemler
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -72,6 +65,12 @@ export default function Customers() {
             Yeni Müşteri Ekle
           </Link>
         </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <p>{error}</p>
+          </div>
+        )}
 
         {/* Customers List */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
@@ -122,7 +121,10 @@ export default function Customers() {
                           >
                             Düzenle
                           </Link>
-                          <button className="text-red-600 hover:text-red-800">
+                          <button
+                            onClick={() => deleteCustomer(customer.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
                             Sil
                           </button>
                         </div>

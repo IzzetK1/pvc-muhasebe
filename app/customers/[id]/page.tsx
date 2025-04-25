@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { customerFunctions, projectFunctions, customerInvoiceFunctions, customerPaymentFunctions, Customer, Project, CustomerInvoice, CustomerPayment } from '../../../lib/database';
+import Header from '../../Header';
 
 type AccountSummary = {
   customer: Customer;
@@ -20,7 +21,7 @@ type AccountSummary = {
 export default function CustomerDetail() {
   const params = useParams();
   const customerId = params.id as string;
-  
+
   const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export default function CustomerDetail() {
         setLoading(false);
       }
     }
-    
+
     loadCustomerData();
   }, [customerId]);
 
@@ -81,40 +82,7 @@ export default function CustomerDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Müşteri Detayı</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/customers" className="hover:underline">
-                    Müşteriler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/projects" className="hover:underline">
-                    Projeler
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -207,7 +175,7 @@ export default function CustomerDetail() {
               Yeni Proje Ekle
             </Link>
           </div>
-          
+
           {projects.length === 0 ? (
             <p className="text-center py-4">Bu müşteriye ait proje bulunmamaktadır.</p>
           ) : (
@@ -280,7 +248,7 @@ export default function CustomerDetail() {
               Yeni Fatura Ekle
             </Link>
           </div>
-          
+
           {invoices.length === 0 ? (
             <p className="text-center py-4">Bu müşteriye ait fatura bulunmamaktadır.</p>
           ) : (
@@ -361,7 +329,7 @@ export default function CustomerDetail() {
               Yeni Ödeme Ekle
             </Link>
           </div>
-          
+
           {payments.length === 0 ? (
             <p className="text-center py-4">Bu müşteriye ait ödeme bulunmamaktadır.</p>
           ) : (
