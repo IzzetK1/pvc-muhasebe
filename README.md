@@ -38,11 +38,16 @@ yarn install
 
 3. Supabase kurulumunu yapın:
 
+   a. [Supabase](https://supabase.com/) hesabı oluşturun
+   b. Yeni bir proje oluşturun
+   c. SQL Editor'de aşağıdaki SQL sorgularını çalıştırın (supabase-schema.sql dosyasında bulunabilir)
+   d. Storage bölümünde "files" adında public bir bucket oluşturun
+
 ```bash
-# Windows için
+# Windows için (yerel geliştirme için)
 setup-supabase.bat
 
-# Linux/Mac için
+# Linux/Mac için (yerel geliştirme için)
 chmod +x setup-supabase.sh
 ./setup-supabase.sh
 ```
@@ -52,6 +57,10 @@ chmod +x setup-supabase.sh
 ```bash
 cp .env.local.example .env.local
 ```
+
+   a. Supabase Dashboard'dan "Project Settings" > "API" bölümünden "Project URL" ve "anon public" anahtarını kopyalayın
+   b. Bu değerleri .env.local dosyasındaki ilgili alanlara yapıştırın
+   c. Canlı ortam için NEXT_PUBLIC_APP_URL değerini güncelleyin
 
 5. Geliştirme sunucusunu başlatın:
 
@@ -72,8 +81,17 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Canlı Ortama Dağıtım
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Uygulamayı canlı ortama dağıtmak için aşağıdaki adımları izleyin:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. [Vercel](https://vercel.com/) hesabı oluşturun
+2. GitHub reponuzu Vercel'e bağlayın
+3. Yeni bir proje oluşturun ve GitHub reponuzu seçin
+4. Çevre değişkenlerini ayarlayın:
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - NEXT_PUBLIC_APP_URL (uygulamanızın Vercel URL'si)
+5. "Deploy" butonuna tıklayın
+
+Daha fazla bilgi için [Next.js dağıtım dokümantasyonu](https://nextjs.org/docs/app/building-your-application/deploying)na göz atabilirsiniz.
