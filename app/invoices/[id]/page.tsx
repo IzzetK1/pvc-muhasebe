@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { use } from 'react';
 import { customerInvoiceFunctions, customerFunctions, projectFunctions, customerPaymentFunctions, CustomerInvoice, Customer, Project, CustomerPayment } from '../../../lib/database';
-import Header from '../../components/Header';
+import Header from '../../Header';
 
 export default function InvoiceDetail() {
   const params = useParams();

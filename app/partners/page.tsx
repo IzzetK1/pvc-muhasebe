@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../lib/database';
+import Header from '../components/Header';
 
 // Partner ve harcama bilgilerini birleştiren tip
 type PartnerWithExpenses = Partner & {
@@ -62,40 +63,7 @@ export default function Partners() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Ortaklar</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/transactions" className="hover:underline">
-                    İşlemler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/reports" className="hover:underline">
-                    Raporlar
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

@@ -339,7 +339,7 @@ export const categoryFunctions = {
   },
 
   // Belirli bir tipteki kategorileri getir
-  getByType: async (type: 'income' | 'expense' | 'partner') => {
+  getByType: async (type: 'income' | 'expense' | 'partner' | 'project') => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')

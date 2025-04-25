@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { transactionFunctions, partnerExpenseFunctions, Transaction } from '../../lib/database';
+import { transactionFunctions, partnerExpenseFunctions, customerFunctions, projectFunctions, Transaction, Customer, Project } from '../../lib/database';
+import Header from '../components/Header';
 
 export default function Dashboard() {
   const [financialSummary, setFinancialSummary] = useState({
@@ -13,6 +14,9 @@ export default function Dashboard() {
     partnerExpenses: [] as { name: string; amount: number }[],
     recentTransactions: [] as Transaction[]
   });
+
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +32,14 @@ export default function Dashboard() {
 
         // Ortak harcamalarını getir
         const partnerExpenses = await partnerExpenseFunctions.getAll();
+
+        // Müşterileri getir
+        const customersData = await customerFunctions.getAll();
+        setCustomers(customersData);
+
+        // Projeleri getir
+        const projectsData = await projectFunctions.getAll();
+        setProjects(projectsData);
 
         // Toplam gelir ve giderleri hesapla
         const totalIncome = transactions
@@ -94,40 +106,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Yönetim Paneli</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/transactions" className="hover:underline">
-                    İşlemler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/reports" className="hover:underline">
-                    Raporlar
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/partners" className="hover:underline">
-                    Ortaklar
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -255,6 +234,66 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Customers */}
+            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-800">Müşteriler</h3>
+                <Link href="/customers" className="text-blue-600 hover:underline text-sm">
+                  Tümünü Gör
+                </Link>
+              </div>
+
+              {customers.length === 0 ? (
+                <div className="py-4 text-center text-gray-500">
+                  <p>Henüz müşteri bulunmamaktadır.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="pb-3 pr-4">Müşteri Adı</th>
+                        <th className="pb-3 pr-4">İletişim</th>
+                        <th className="pb-3 text-right">İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customers.slice(0, 5).map((customer) => (
+                        <tr key={customer.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 pr-4 font-medium">
+                            <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:underline">
+                              {customer.name}
+                            </Link>
+                            {customer.company_name && (
+                              <div className="text-sm text-gray-500">{customer.company_name}</div>
+                            )}
+                          </td>
+                          <td className="py-3 pr-4">
+                            {customer.email && <div className="text-sm">{customer.email}</div>}
+                            {customer.phone && <div className="text-sm text-gray-500">{customer.phone}</div>}
+                          </td>
+                          <td className="py-3 text-right">
+                            <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
+                              Görüntüle
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="mt-6">
+                <Link
+                  href="/customers/new"
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded transition-colors"
+                >
+                  Yeni Müşteri Ekle
+                </Link>
+              </div>
+            </div>
+
             {/* Quick Actions */}
             <div className="mt-8 bg-white rounded-lg shadow-md p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Hızlı İşlemler</h3>
@@ -275,17 +314,17 @@ export default function Dashboard() {
                 </Link>
 
                 <Link
-                  href="/partners/expenses/new"
+                  href="/customers/new"
                   className="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg text-center transition-colors"
                 >
-                  <div className="text-blue-600 font-medium">Ortak Harcaması Ekle</div>
+                  <div className="text-blue-600 font-medium">Müşteri Ekle</div>
                 </Link>
 
                 <Link
-                  href="/partners/settings"
+                  href="/projects/new"
                   className="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg text-center transition-colors"
                 >
-                  <div className="text-purple-600 font-medium">Ayarlar</div>
+                  <div className="text-purple-600 font-medium">Proje Ekle</div>
                 </Link>
               </div>
             </div>
