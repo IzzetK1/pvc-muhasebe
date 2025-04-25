@@ -1,19 +1,21 @@
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { projectFunctions, categoryFunctions, customerFunctions, Category, Customer } from '../../../lib/database';
+import Header from '../../Header';
 
-export default function NewProject() {
+// SearchParams wrapper component with useSearchParams hook
+function NewProjectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const customerId = searchParams.get('customer_id');
-  
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -26,7 +28,7 @@ export default function NewProject() {
     total_expense: 0,
     notes: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -37,11 +39,11 @@ export default function NewProject() {
         // Kategorileri yükle
         const categoriesData = await categoryFunctions.getByType('project');
         setCategories(categoriesData);
-        
+
         // Müşterileri yükle
         const customersData = await customerFunctions.getAll();
         setCustomers(customersData);
-        
+
         // Eğer URL'den bir müşteri ID'si geldiyse, o müşteriyi seç
         if (customerId) {
           const customer = customersData.find(c => c.id === customerId);
@@ -56,20 +58,20 @@ export default function NewProject() {
         setDataLoading(false);
       }
     }
-    
+
     loadData();
   }, [customerId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Sayısal değerler için dönüşüm yap
     if (name === 'total_income' || name === 'total_expense') {
       setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     // Müşteri değiştiğinde, seçilen müşteriyi güncelle
     if (name === 'customer_id') {
       const customer = customers.find(c => c.id === value);
@@ -136,40 +138,7 @@ export default function NewProject() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Yeni Proje</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/projects" className="hover:underline">
-                    Projeler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/customers" className="hover:underline">
-                    Müşteriler
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -206,7 +175,7 @@ export default function NewProject() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="category_id" className="block text-gray-700 font-medium mb-2">
                   Kategori
@@ -226,7 +195,7 @@ export default function NewProject() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label htmlFor="customer_id" className="block text-gray-700 font-medium mb-2">
                   Müşteri
@@ -246,7 +215,7 @@ export default function NewProject() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label htmlFor="status" className="block text-gray-700 font-medium mb-2">
                   Durum
@@ -263,7 +232,7 @@ export default function NewProject() {
                   <option value="cancelled">İptal Edildi</option>
                 </select>
               </div>
-              
+
               <div>
                 <label htmlFor="start_date" className="block text-gray-700 font-medium mb-2">
                   Başlangıç Tarihi <span className="text-red-600">*</span>
@@ -278,7 +247,7 @@ export default function NewProject() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="end_date" className="block text-gray-700 font-medium mb-2">
                   Bitiş Tarihi
@@ -292,7 +261,7 @@ export default function NewProject() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="total_income" className="block text-gray-700 font-medium mb-2">
                   Toplam Gelir
@@ -308,7 +277,7 @@ export default function NewProject() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="total_expense" className="block text-gray-700 font-medium mb-2">
                   Toplam Gider
@@ -324,7 +293,7 @@ export default function NewProject() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
                   Açıklama
@@ -338,7 +307,7 @@ export default function NewProject() {
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 ></textarea>
               </div>
-              
+
               <div className="md:col-span-2">
                 <label htmlFor="notes" className="block text-gray-700 font-medium mb-2">
                   Notlar
@@ -353,7 +322,7 @@ export default function NewProject() {
                 ></textarea>
               </div>
             </div>
-            
+
             {/* Kar Özeti */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-medium text-gray-800 mb-3">Kar Özeti</h3>
@@ -374,7 +343,7 @@ export default function NewProject() {
                 </div>
               </div>
             </div>
-            
+
             {/* Müşteri Bilgisi */}
             {selectedCustomer && (
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
@@ -405,7 +374,7 @@ export default function NewProject() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end space-x-4">
               <Link
                 href="/projects"
@@ -432,5 +401,16 @@ export default function NewProject() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Main component that wraps the content with Suspense
+export default function NewProject() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-xl">Yükleniyor...</p>
+    </div>}>
+      <NewProjectContent />
+    </Suspense>
   );
 }
