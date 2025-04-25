@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Mobil görünüm için yazı rengi iyileştirmeleri */
+@media (max-width: 768px) {
+  .text-gray-500 {
+    @apply text-gray-700;
+  }
+
+  .text-gray-600 {
+    @apply text-gray-800;
+  }
+
+  .text-sm {
+    @apply font-medium;
+  }
+}
+
+/* Form elemanları için iyileştirmeler */
+input, select, textarea {
+  @apply text-gray-900;
+}
