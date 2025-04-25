@@ -720,6 +720,18 @@ export const customerPaymentFunctions = {
     return data;
   },
 
+  // Belirli bir ödemeyi getir
+  getById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('customer_payments')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Belirli bir müşterinin ödemelerini getir
   getByCustomerId: async (customerId: string) => {
     const { data, error } = await supabase
@@ -794,6 +806,18 @@ export const customerInvoiceFunctions = {
       .from('customer_invoices')
       .select('*')
       .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Belirli bir faturayı getir
+  getById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('customer_invoices')
+      .select('*')
+      .eq('id', id)
+      .single();
 
     if (error) throw error;
     return data;

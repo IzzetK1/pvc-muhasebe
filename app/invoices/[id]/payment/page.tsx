@@ -1,17 +1,16 @@
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { use } from 'react';
 import { customerInvoiceFunctions, customerPaymentFunctions, CustomerInvoice } from '../../../../lib/database';
 import Header from '../../../Header';
 
-export default function InvoicePayment() {
+// Ödeme içerik bileşeni
+function InvoicePaymentContent() {
   const params = useParams();
-  const resolvedParams = use(params);
   const router = useRouter();
-  const invoiceId = resolvedParams.id as string;
+  const invoiceId = params.id as string;
 
   const [invoice, setInvoice] = useState<CustomerInvoice | null>(null);
 
@@ -308,5 +307,16 @@ export default function InvoicePayment() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Ana bileşen
+export default function InvoicePayment() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-xl">Yükleniyor...</p>
+    </div>}>
+      <InvoicePaymentContent />
+    </Suspense>
   );
 }
