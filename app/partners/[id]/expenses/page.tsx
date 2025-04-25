@@ -2,64 +2,41 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-
-type PartnerExpense = {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  category?: string;
-  notes?: string;
-};
-
-type Partner = {
-  id: string;
-  name: string;
-  email: string;
-};
+import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../../../lib/database';
+import Header from '../../../components/Header';
 
 export default function PartnerExpenses({ params }: { params: { id: string } }) {
   const { id } = params;
-  
+
   const [partner, setPartner] = useState<Partner | null>(null);
   const [expenses, setExpenses] = useState<PartnerExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalAmount, setTotalAmount] = useState(0);
-  
-  // Örnek veri - gerçek uygulamada API'den gelecek
+
   useEffect(() => {
-    // Partner bilgilerini al
-    const partnerData = id === 'partner1' 
-      ? { id: 'partner1', name: 'Mehmet', email: 'mehmet@example.com' }
-      : { id: 'partner2', name: 'Abdülaziz', email: 'abdulaziz@example.com' };
-    
-    // Harcama verilerini al
-    const expensesData = id === 'partner1' 
-      ? [
-          { id: '1', date: '2025-04-15', description: 'Araç yakıt gideri', amount: 1200, category: 'Yakıt' },
-          { id: '2', date: '2025-04-10', description: 'İş yemeği', amount: 800, category: 'Yemek' },
-          { id: '3', date: '2025-04-05', description: 'Telefon faturası', amount: 500, category: 'Telefon' },
-          { id: '4', date: '2025-03-25', description: 'Malzeme alımı', amount: 3500, category: 'Malzeme' },
-          { id: '5', date: '2025-03-20', description: 'Araç bakım', amount: 2000, category: 'Ulaşım' },
-        ]
-      : [
-          { id: '6', date: '2025-04-18', description: 'Malzeme alımı', amount: 5000, category: 'Malzeme' },
-          { id: '7', date: '2025-04-12', description: 'Araç bakım', amount: 2500, category: 'Ulaşım' },
-          { id: '8', date: '2025-04-03', description: 'İş yemeği', amount: 1000, category: 'Yemek' },
-          { id: '9', date: '2025-03-28', description: 'Telefon faturası', amount: 450, category: 'Telefon' },
-          { id: '10', date: '2025-03-15', description: 'Yakıt gideri', amount: 1100, category: 'Yakıt' },
-        ];
-    
-    setPartner(partnerData);
-    setExpenses(expensesData);
-    
-    // Toplam tutarı hesapla
-    const total = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-    setTotalAmount(total);
-    
-    setLoading(false);
+    async function loadData() {
+      try {
+        // Partner bilgilerini al
+        const partnerData = await partnerFunctions.getById(id);
+        setPartner(partnerData);
+
+        // Harcama verilerini al
+        const expensesData = await partnerExpenseFunctions.getByPartnerId(id);
+        setExpenses(expensesData);
+
+        // Toplam tutarı hesapla
+        const total = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+        setTotalAmount(total);
+      } catch (err) {
+        console.error('Veriler yüklenirken hata oluştu:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
   }, [id]);
-  
+
   // Para birimini formatlama fonksiyonu
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('tr-TR', {
@@ -68,23 +45,90 @@ export default function PartnerExpenses({ params }: { params: { id: string } }) 
       minimumFractionDigits: 2,
     }).format(amount);
   };
-  
+
   // Harcama silme işlevi
-  const handleDelete = (expenseId: string) => {
+  const handleDelete = async (expenseId: string) => {
     if (window.confirm('Bu harcamayı silmek istediğinizden emin misiniz?')) {
-      // Harcamayı listeden kaldır
-      const updatedExpenses = expenses.filter(expense => expense.id !== expenseId);
-      setExpenses(updatedExpenses);
-      
-      // Toplam tutarı güncelle
-      const deletedExpense = expenses.find(expense => expense.id === expenseId);
-      if (deletedExpense) {
-        setTotalAmount(prev => prev - deletedExpense.amount);
+      try {
+        // API'ye istek gönder
+        await partnerExpenseFunctions.delete(expenseId);
+
+        // Harcamayı listeden kaldır
+        const updatedExpenses = expenses.filter(expense => expense.id !== expenseId);
+        setExpenses(updatedExpenses);
+
+        // Toplam tutarı güncelle
+        const deletedExpense = expenses.find(expense => expense.id === expenseId);
+        if (deletedExpense) {
+          setTotalAmount(prev => prev - deletedExpense.amount);
+        }
+
+        alert('Harcama başarıyla silindi!');
+      } catch (err) {
+        console.error('Harcama silinirken hata oluştu:', err);
+        alert('Harcama silinirken bir hata oluştu.');
       }
-      
-      // Gerçek uygulamada burada API'ye istek gönderilecek
-      alert('Harcama başarıyla silindi!');
     }
+  };
+
+  // Aylık harcamaları hesapla
+  const calculateMonthlyExpenses = () => {
+    const monthlyData: { name: string; amount: number }[] = [];
+    const monthNames = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+
+    // Harcamaları aylara göre grupla
+    const expensesByMonth: Record<string, number> = {};
+
+    expenses.forEach(expense => {
+      const date = new Date(expense.date);
+      const monthYear = `${date.getFullYear()}-${date.getMonth()}`;
+
+      expensesByMonth[monthYear] = (expensesByMonth[monthYear] || 0) + expense.amount;
+    });
+
+    // Son 3 ayı göster
+    const today = new Date();
+    for (let i = 0; i < 3; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthYear = `${date.getFullYear()}-${date.getMonth()}`;
+      const amount = expensesByMonth[monthYear] || 0;
+
+      monthlyData.push({
+        name: `${monthNames[date.getMonth()]} ${date.getFullYear()}`,
+        amount
+      });
+    }
+
+    return monthlyData;
+  };
+
+  // Kategori bazlı harcamaları hesapla
+  const calculateCategoryExpenses = () => {
+    const categoryData: { name: string; amount: number }[] = [];
+
+    // Harcamaları kategorilere göre grupla
+    const expensesByCategory: Record<string, number> = {};
+
+    expenses.forEach(expense => {
+      const category = expense.category_id || 'uncategorized';
+      expensesByCategory[category] = (expensesByCategory[category] || 0) + expense.amount;
+    });
+
+    // Kategorileri tutara göre sırala ve en yüksek 3 kategoriyi göster
+    Object.entries(expensesByCategory)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .forEach(([category, amount]) => {
+        categoryData.push({
+          name: category,
+          amount
+        });
+      });
+
+    return categoryData;
   };
 
   if (loading) {
@@ -106,35 +150,7 @@ export default function PartnerExpenses({ params }: { params: { id: string } }) 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">PVC Muhasebe</h1>
-              <p className="text-sm">Ortak Harcamaları</p>
-            </div>
-            <nav>
-              <ul className="flex space-x-6">
-                <li>
-                  <Link href="/" className="hover:underline">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard" className="hover:underline">
-                    Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/partners" className="hover:underline">
-                    Ortaklar
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -166,14 +182,14 @@ export default function PartnerExpenses({ params }: { params: { id: string } }) 
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
             <div className="flex justify-between items-center p-6 border-b">
               <h3 className="text-xl font-semibold text-gray-800">Harcama Listesi</h3>
-              <Link 
-                href="/partners/expenses/new" 
+              <Link
+                href="/partners/expenses/new"
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
               >
                 Yeni Harcama Ekle
               </Link>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-gray-100">
@@ -197,13 +213,13 @@ export default function PartnerExpenses({ params }: { params: { id: string } }) 
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex justify-center space-x-2">
-                            <Link 
+                            <Link
                               href={`/partners/expenses/${expense.id}/edit`}
                               className="text-blue-600 hover:text-blue-800"
                             >
                               Düzenle
                             </Link>
-                            <button 
+                            <button
                               onClick={() => handleDelete(expense.id)}
                               className="text-red-600 hover:text-red-800"
                             >
@@ -228,46 +244,34 @@ export default function PartnerExpenses({ params }: { params: { id: string } }) 
           {/* Expense Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-4">Harcama Özeti</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Monthly Summary */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-700 mb-3">Aylık Özet</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Nisan 2025</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 2500 : 8500)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Mart 2025</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 5500 : 1550)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Şubat 2025</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 3200 : 1800)}</span>
-                  </div>
+
+            {expenses.length === 0 ? (
+              <p className="text-center py-4 text-gray-500">Henüz harcama kaydı bulunmamaktadır.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Monthly Summary */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-3">Aylık Özet</h4>
+                  {calculateMonthlyExpenses().map((month, index) => (
+                    <div key={index} className="flex justify-between p-2 bg-gray-50 rounded mb-2">
+                      <span>{month.name}</span>
+                      <span className="text-red-600 font-medium">{formatCurrency(month.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Category Summary */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-3">Kategori Bazlı</h4>
+                  {calculateCategoryExpenses().map((category, index) => (
+                    <div key={index} className="flex justify-between p-2 bg-gray-50 rounded mb-2">
+                      <span>{category.name || 'Kategorisiz'}</span>
+                      <span className="text-red-600 font-medium">{formatCurrency(category.amount)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              {/* Category Summary */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-700 mb-3">Kategori Bazlı</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Malzeme</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 3500 : 5000)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Yakıt</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 1200 : 1100)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-50 rounded">
-                    <span>Yemek</span>
-                    <span className="text-red-600 font-medium">{formatCurrency(id === 'partner1' ? 800 : 1000)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
