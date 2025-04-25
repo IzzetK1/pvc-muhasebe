@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { partnerFunctions, partnerExpenseFunctions, Partner, PartnerExpense } from '../../lib/database';
-import Header from '../components/Header';
+import Header from '../Header';
 
 // Partner ve harcama bilgilerini birleştiren tip
 type PartnerWithExpenses = Partner & {
@@ -67,11 +67,11 @@ export default function Partners() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
           <h2 className="text-2xl font-semibold text-gray-800">Ortaklar</h2>
           <Link
             href="/partners/expenses/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors text-center"
           >
             Ortak Harcaması Ekle
           </Link>
@@ -95,7 +95,9 @@ export default function Partners() {
                 </div>
 
                 <h4 className="text-lg font-medium text-gray-700 mb-2">Son Harcamalar</h4>
-                <div className="overflow-x-auto">
+
+                {/* Masaüstü Görünüm */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-gray-50">
                       <tr>
@@ -116,6 +118,19 @@ export default function Partners() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobil Görünüm */}
+                <div className="md:hidden">
+                  {partner.recentExpenses.map((expense) => (
+                    <div key={expense.id} className="border-b py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-600">{new Date(expense.date).toLocaleDateString('tr-TR')}</span>
+                        <span className="text-red-600 font-medium">{formatCurrency(expense.amount)}</span>
+                      </div>
+                      <div className="text-sm">{expense.description}</div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="mt-4 flex justify-end">
@@ -140,129 +155,272 @@ export default function Partners() {
           ) : partners.length === 0 ? (
             <p className="text-center py-4">Henüz ortak bulunmamaktadır.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-gray-600">Ortak</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Bu Ay</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Geçen Ay</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Bu Yıl</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Toplam</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {partners.map(partner => {
-                    // Tarih filtreleri için bugünün tarihini al
-                    const today = new Date();
-                    const currentYear = today.getFullYear();
-                    const currentMonth = today.getMonth();
+            <>
+              {/* Masaüstü Görünüm */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-gray-600">Ortak</th>
+                      <th className="px-4 py-3 text-gray-600 text-right">Bu Ay</th>
+                      <th className="px-4 py-3 text-gray-600 text-right">Geçen Ay</th>
+                      <th className="px-4 py-3 text-gray-600 text-right">Bu Yıl</th>
+                      <th className="px-4 py-3 text-gray-600 text-right">Toplam</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partners.map(partner => {
+                      // Tarih filtreleri için bugünün tarihini al
+                      const today = new Date();
+                      const currentYear = today.getFullYear();
+                      const currentMonth = today.getMonth();
 
-                    // Bu ay başlangıç ve bitiş tarihleri
-                    const currentMonthStart = new Date(currentYear, currentMonth, 1);
-                    const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+                      // Bu ay başlangıç ve bitiş tarihleri
+                      const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                      const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
 
-                    // Geçen ay başlangıç ve bitiş tarihleri
-                    const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
-                    const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+                      // Geçen ay başlangıç ve bitiş tarihleri
+                      const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                      const lastMonthEnd = new Date(currentYear, currentMonth, 0);
 
-                    // Bu yıl başlangıç tarihi
-                    const currentYearStart = new Date(currentYear, 0, 1);
+                      // Bu yıl başlangıç tarihi
+                      const currentYearStart = new Date(currentYear, 0, 1);
 
-                    // Harcamaları filtreleme
-                    const thisMonthExpenses = partner.recentExpenses.filter(expense => {
-                      const expenseDate = new Date(expense.date);
-                      return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
-                    });
+                      // Harcamaları filtreleme
+                      const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                        const expenseDate = new Date(expense.date);
+                        return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                      });
 
-                    const lastMonthExpenses = partner.recentExpenses.filter(expense => {
-                      const expenseDate = new Date(expense.date);
-                      return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
-                    });
+                      const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                        const expenseDate = new Date(expense.date);
+                        return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                      });
 
-                    const thisYearExpenses = partner.recentExpenses.filter(expense => {
-                      const expenseDate = new Date(expense.date);
-                      return expenseDate >= currentYearStart;
-                    });
+                      const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                        const expenseDate = new Date(expense.date);
+                        return expenseDate >= currentYearStart;
+                      });
 
-                    // Toplamları hesaplama
-                    const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-                    const lastMonthTotal = lastMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-                    const thisYearTotal = thisYearExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                      // Toplamları hesaplama
+                      const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                      const lastMonthTotal = lastMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                      const thisYearTotal = thisYearExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
-                    return (
-                      <tr key={partner.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium">{partner.name}</td>
-                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(thisMonthTotal)}</td>
-                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(lastMonthTotal)}</td>
-                        <td className="px-6 py-4 text-right text-red-600">{formatCurrency(thisYearTotal)}</td>
-                        <td className="px-6 py-4 text-right text-red-600 font-bold">{formatCurrency(partner.totalExpenses)}</td>
-                      </tr>
-                    );
-                  })}
+                      return (
+                        <tr key={partner.id} className="border-b hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium">{partner.name}</td>
+                          <td className="px-4 py-3 text-right text-red-600">{formatCurrency(thisMonthTotal)}</td>
+                          <td className="px-4 py-3 text-right text-red-600">{formatCurrency(lastMonthTotal)}</td>
+                          <td className="px-4 py-3 text-right text-red-600">{formatCurrency(thisYearTotal)}</td>
+                          <td className="px-4 py-3 text-right text-red-600 font-bold">{formatCurrency(partner.totalExpenses)}</td>
+                        </tr>
+                      );
+                    })}
 
-                  {/* Toplam satırı */}
-                  <tr className="bg-gray-50">
-                    <td className="px-6 py-4 font-medium">Toplam</td>
-                    <td className="px-6 py-4 text-right text-red-600 font-bold">
-                      {formatCurrency(
-                        partners.reduce((sum, partner) => {
-                          const today = new Date();
-                          const currentYear = today.getFullYear();
-                          const currentMonth = today.getMonth();
-                          const currentMonthStart = new Date(currentYear, currentMonth, 1);
-                          const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+                    {/* Toplam satırı */}
+                    <tr className="bg-gray-50">
+                      <td className="px-4 py-3 font-medium">Toplam</td>
+                      <td className="px-4 py-3 text-right text-red-600 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentMonth = today.getMonth();
+                            const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                            const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
 
-                          const thisMonthExpenses = partner.recentExpenses.filter(expense => {
-                            const expenseDate = new Date(expense.date);
-                            return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
-                          });
+                            const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                            });
 
-                          return sum + thisMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
-                        }, 0)
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right text-red-600 font-bold">
-                      {formatCurrency(
-                        partners.reduce((sum, partner) => {
-                          const today = new Date();
-                          const currentYear = today.getFullYear();
-                          const currentMonth = today.getMonth();
-                          const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
-                          const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+                            return sum + thisMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-red-600 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentMonth = today.getMonth();
+                            const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                            const lastMonthEnd = new Date(currentYear, currentMonth, 0);
 
-                          const lastMonthExpenses = partner.recentExpenses.filter(expense => {
-                            const expenseDate = new Date(expense.date);
-                            return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
-                          });
+                            const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                            });
 
-                          return sum + lastMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
-                        }, 0)
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right text-red-600 font-bold">
-                      {formatCurrency(
-                        partners.reduce((sum, partner) => {
-                          const today = new Date();
-                          const currentYear = today.getFullYear();
-                          const currentYearStart = new Date(currentYear, 0, 1);
+                            return sum + lastMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-red-600 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentYearStart = new Date(currentYear, 0, 1);
 
-                          const thisYearExpenses = partner.recentExpenses.filter(expense => {
-                            const expenseDate = new Date(expense.date);
-                            return expenseDate >= currentYearStart;
-                          });
+                            const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= currentYearStart;
+                            });
 
-                          return sum + thisYearExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
-                        }, 0)
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right text-red-600 font-bold">
-                      {formatCurrency(partners.reduce((sum, partner) => sum + partner.totalExpenses, 0))}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                            return sum + thisYearExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-red-600 font-bold">
+                        {formatCurrency(partners.reduce((sum, partner) => sum + partner.totalExpenses, 0))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobil Görünüm */}
+              <div className="md:hidden">
+                {partners.map(partner => {
+                  // Tarih filtreleri için bugünün tarihini al
+                  const today = new Date();
+                  const currentYear = today.getFullYear();
+                  const currentMonth = today.getMonth();
+
+                  // Bu ay başlangıç ve bitiş tarihleri
+                  const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                  const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+
+                  // Geçen ay başlangıç ve bitiş tarihleri
+                  const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                  const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+
+                  // Bu yıl başlangıç tarihi
+                  const currentYearStart = new Date(currentYear, 0, 1);
+
+                  // Harcamaları filtreleme
+                  const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                    const expenseDate = new Date(expense.date);
+                    return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                  });
+
+                  const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                    const expenseDate = new Date(expense.date);
+                    return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                  });
+
+                  const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                    const expenseDate = new Date(expense.date);
+                    return expenseDate >= currentYearStart;
+                  });
+
+                  // Toplamları hesaplama
+                  const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                  const lastMonthTotal = lastMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                  const thisYearTotal = thisYearExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+                  return (
+                    <div key={partner.id} className="border-b py-4">
+                      <div className="font-medium text-lg mb-2">{partner.name}</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Bu Ay:</span>
+                          <span className="text-red-600 ml-2 font-medium">{formatCurrency(thisMonthTotal)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Geçen Ay:</span>
+                          <span className="text-red-600 ml-2 font-medium">{formatCurrency(lastMonthTotal)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Bu Yıl:</span>
+                          <span className="text-red-600 ml-2 font-medium">{formatCurrency(thisYearTotal)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Toplam:</span>
+                          <span className="text-red-600 ml-2 font-bold">{formatCurrency(partner.totalExpenses)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Mobil Toplam */}
+                <div className="py-4 mt-2 border-t-2 border-gray-200">
+                  <div className="font-medium text-lg mb-2">Toplam</div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-gray-600">Bu Ay:</span>
+                      <span className="text-red-600 ml-2 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentMonth = today.getMonth();
+                            const currentMonthStart = new Date(currentYear, currentMonth, 1);
+                            const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+
+                            const thisMonthExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= currentMonthStart && expenseDate <= currentMonthEnd;
+                            });
+
+                            return sum + thisMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Geçen Ay:</span>
+                      <span className="text-red-600 ml-2 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentMonth = today.getMonth();
+                            const lastMonthStart = new Date(currentYear, currentMonth - 1, 1);
+                            const lastMonthEnd = new Date(currentYear, currentMonth, 0);
+
+                            const lastMonthExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= lastMonthStart && expenseDate <= lastMonthEnd;
+                            });
+
+                            return sum + lastMonthExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Bu Yıl:</span>
+                      <span className="text-red-600 ml-2 font-bold">
+                        {formatCurrency(
+                          partners.reduce((sum, partner) => {
+                            const today = new Date();
+                            const currentYear = today.getFullYear();
+                            const currentYearStart = new Date(currentYear, 0, 1);
+
+                            const thisYearExpenses = partner.recentExpenses.filter(expense => {
+                              const expenseDate = new Date(expense.date);
+                              return expenseDate >= currentYearStart;
+                            });
+
+                            return sum + thisYearExpenses.reduce((expSum, expense) => expSum + expense.amount, 0);
+                          }, 0)
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Toplam:</span>
+                      <span className="text-red-600 ml-2 font-bold">
+                        {formatCurrency(partners.reduce((sum, partner) => sum + partner.totalExpenses, 0))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
@@ -271,27 +429,27 @@ export default function Partners() {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Ortak Ayarları</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="text-lg font-medium text-gray-700 mb-3">Ortak Bilgileri</h4>
               <p className="text-gray-600 mb-4">
                 Ortak bilgilerini düzenleyebilir veya yeni ortak ekleyebilirsiniz.
               </p>
               <Link
                 href="/partners/settings"
-                className="text-blue-600 hover:underline"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
               >
                 Ortak Bilgilerini Düzenle
               </Link>
             </div>
 
-            <div>
+            <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="text-lg font-medium text-gray-700 mb-3">Harcama Kategorileri</h4>
               <p className="text-gray-600 mb-4">
                 Ortak harcamaları için özel kategoriler oluşturabilirsiniz.
               </p>
               <Link
                 href="/partners/categories"
-                className="text-blue-600 hover:underline"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
               >
                 Kategorileri Yönet
               </Link>
