@@ -5,14 +5,19 @@ import { createClient } from "@supabase/supabase-js";
 
 // Supabase istemcisini oluştur
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Supabase bağlantısını kontrol et
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Supabase URL ve API anahtarı gereklidir. Lütfen .env dosyasını kontrol edin.");
+  throw new Error("Supabase URL ve Service Role Key gereklidir. Lütfen .env dosyasını kontrol edin.");
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 const handler = NextAuth({
   providers: [
