@@ -1,7 +1,23 @@
+"use client";
+
 import Link from "next/link";
 import Header from "./Header";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  // Kullanıcı kontrolü
+  useEffect(() => {
+    // localStorage'dan kullanıcı bilgisini al
+    const userStr = localStorage.getItem('user');
+
+    // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
+    if (!userStr) {
+      router.push('/login');
+    }
+  }, [router]);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
