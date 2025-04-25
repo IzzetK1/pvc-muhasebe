@@ -1,5 +1,7 @@
+"use client";
+
 import Link from 'next/link';
-import Header from '../components/Header';
+import Header from '../Header';
 
 export default function Reports() {
   return (
@@ -172,7 +174,8 @@ export default function Reports() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Kaydedilmiş Raporlar</h3>
 
-          <div className="overflow-x-auto">
+          {/* Masaüstü Görünüm */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-100">
                 <tr>
@@ -221,6 +224,43 @@ export default function Reports() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          {/* Mobil Görünüm */}
+          <div className="md:hidden">
+            <div className="border-b py-4">
+              <div className="font-medium mb-1">2025 Nisan Gelir/Gider Raporu</div>
+              <div className="text-sm text-gray-600 mb-1">01.04.2025 - 30.04.2025</div>
+              <div className="text-sm text-gray-500 mb-2">Oluşturulma: 25.04.2025</div>
+              <div className="flex justify-end space-x-4">
+                <Link
+                  href="/reports/view/1"
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  Görüntüle
+                </Link>
+                <button className="text-red-600 hover:text-red-800 text-sm">
+                  Sil
+                </button>
+              </div>
+            </div>
+
+            <div className="border-b py-4">
+              <div className="font-medium mb-1">2025 Q1 Kar/Zarar Analizi</div>
+              <div className="text-sm text-gray-600 mb-1">01.01.2025 - 31.03.2025</div>
+              <div className="text-sm text-gray-500 mb-2">Oluşturulma: 05.04.2025</div>
+              <div className="flex justify-end space-x-4">
+                <Link
+                  href="/reports/view/2"
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  Görüntüle
+                </Link>
+                <button className="text-red-600 hover:text-red-800 text-sm">
+                  Sil
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </main>

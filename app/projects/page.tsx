@@ -121,67 +121,126 @@ export default function Projects() {
           ) : projects.length === 0 ? (
             <p className="text-center py-8">Henüz proje bulunmamaktadır.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-gray-600">Proje Adı</th>
-                    <th className="px-6 py-3 text-gray-600">Tarih</th>
-                    <th className="px-6 py-3 text-gray-600">Durum</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Gelir</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Gider</th>
-                    <th className="px-6 py-3 text-gray-600 text-right">Kar</th>
-                    <th className="px-6 py-3 text-gray-600 text-center">İşlemler</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((project) => (
-                    <tr key={project.id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium">
-                        <Link href={`/projects/${project.id}`} className="text-blue-600 hover:underline">
-                          {project.name}
-                        </Link>
-                        <p className="text-sm text-gray-500">{project.description}</p>
-                      </td>
-                      <td className="px-6 py-4">
+            <>
+              {/* Masaüstü Görünüm */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-gray-600">Proje Adı</th>
+                      <th className="px-6 py-3 text-gray-600">Tarih</th>
+                      <th className="px-6 py-3 text-gray-600">Durum</th>
+                      <th className="px-6 py-3 text-gray-600 text-right">Gelir</th>
+                      <th className="px-6 py-3 text-gray-600 text-right">Gider</th>
+                      <th className="px-6 py-3 text-gray-600 text-right">Kar</th>
+                      <th className="px-6 py-3 text-gray-600 text-center">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projects.map((project) => (
+                      <tr key={project.id} className="border-b hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium">
+                          <Link href={`/projects/${project.id}`} className="text-blue-600 hover:underline">
+                            {project.name}
+                          </Link>
+                          <p className="text-sm text-gray-500">{project.description}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>{new Date(project.start_date).toLocaleDateString('tr-TR')}</div>
+                          {project.end_date && (
+                            <div className="text-sm text-gray-500">
+                              {new Date(project.end_date).toLocaleDateString('tr-TR')}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {getStatusBadge(project.status)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-green-600">
+                          {formatCurrency(project.total_income)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-red-600">
+                          {formatCurrency(project.total_expense)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="font-medium text-blue-600">{formatCurrency(project.profit || 0)}</div>
+                          <div className="text-sm text-gray-500">%{(project.profit_margin || 0).toFixed(1)}</div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex justify-center space-x-2">
+                            <Link
+                              href={`/projects/${project.id}/edit`}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              Düzenle
+                            </Link>
+                            <button className="text-red-600 hover:text-red-800">
+                              Sil
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobil Görünüm */}
+              <div className="md:hidden">
+                {projects.map((project) => (
+                  <div key={project.id} className="border-b p-4">
+                    <div className="mb-2">
+                      <Link href={`/projects/${project.id}`} className="text-blue-600 hover:underline font-medium">
+                        {project.name}
+                      </Link>
+                      <p className="text-sm text-gray-500 mt-1">{project.description}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-sm">
                         <div>{new Date(project.start_date).toLocaleDateString('tr-TR')}</div>
                         {project.end_date && (
-                          <div className="text-sm text-gray-500">
+                          <div className="text-gray-500">
                             {new Date(project.end_date).toLocaleDateString('tr-TR')}
                           </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
+                      </div>
+                      <div>
                         {getStatusBadge(project.status)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-green-600">
-                        {formatCurrency(project.total_income)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-red-600">
-                        {formatCurrency(project.total_expense)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="font-medium text-blue-600">{formatCurrency(project.profit || 0)}</div>
-                        <div className="text-sm text-gray-500">%{(project.profit_margin || 0).toFixed(1)}</div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center space-x-2">
-                          <Link
-                            href={`/projects/${project.id}/edit`}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Düzenle
-                          </Link>
-                          <button className="text-red-600 hover:text-red-800">
-                            Sil
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 mb-3 text-sm">
+                      <div>
+                        <div className="text-gray-500">Gelir</div>
+                        <div className="text-green-600 font-medium">{formatCurrency(project.total_income)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Gider</div>
+                        <div className="text-red-600 font-medium">{formatCurrency(project.total_expense)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Kar</div>
+                        <div className="text-blue-600 font-medium">{formatCurrency(project.profit || 0)}</div>
+                        <div className="text-xs text-gray-500">%{(project.profit_margin || 0).toFixed(1)}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4">
+                      <Link
+                        href={`/projects/${project.id}/edit`}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Düzenle
+                      </Link>
+                      <button className="text-red-600 hover:text-red-800 text-sm">
+                        Sil
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
