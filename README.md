@@ -1,24 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PVC Muhasebe Sistemi
 
-## Getting Started
+PVC Doğrama ve Montaj işletmesi için geliştirilmiş muhasebe yönetim sistemi.
 
-First, run the development server:
+## Özellikler
+
+- Gelir ve gider takibi
+- Ortak harcamaları yönetimi
+- Kategori bazlı raporlama
+- Dosya yükleme ve belge yönetimi
+- Çoklu kullanıcı desteği
+- Mobil uyumlu arayüz
+
+## Başlangıç
+
+### Gereksinimler
+
+- Node.js 18.0 veya üzeri
+- npm veya yarn
+- Supabase hesabı (ücretsiz)
+
+### Kurulum
+
+1. Repoyu klonlayın:
+
+```bash
+git clone https://github.com/kullaniciadi/pvc-muhasebe.git
+cd pvc-muhasebe
+```
+
+2. Bağımlılıkları yükleyin:
+
+```bash
+npm install
+# veya
+yarn install
+```
+
+3. Supabase kurulumunu yapın:
+
+```bash
+# Windows için
+setup-supabase.bat
+
+# Linux/Mac için
+chmod +x setup-supabase.sh
+./setup-supabase.sh
+```
+
+4. `.env.local.example` dosyasını `.env.local` olarak kopyalayın ve Supabase bilgilerinizi ekleyin:
+
+```bash
+cp .env.local.example .env.local
+```
+
+5. Geliştirme sunucusunu başlatın:
 
 ```bash
 npm run dev
-# or
+# veya
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açarak uygulamayı görüntüleyebilirsiniz.
 
 ## Learn More
 
