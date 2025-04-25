@@ -1,15 +1,11 @@
 import Link from "next/link";
+import Header from "./Header";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">PVC Muhasebe</h1>
-          <p className="mt-2">PVC Doğrama ve Montaj İşleri Muhasebe Sistemi</p>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -26,16 +22,16 @@ export default function Home() {
               <li>Kar/zarar analizlerini görüntüleyebilir</li>
               <li>Detaylı raporlar ve grafikler oluşturabilirsiniz</li>
             </ul>
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <Link
                 href="/dashboard"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors text-center"
               >
                 Panele Git
               </Link>
               <Link
                 href="/transactions/new"
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors text-center"
               >
                 İşlem Ekle
               </Link>
@@ -44,7 +40,7 @@ export default function Home() {
 
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Hızlı Erişim</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
                 href="/transactions"
                 className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors"

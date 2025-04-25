@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { transactionFunctions, partnerExpenseFunctions, customerFunctions, projectFunctions, Transaction, Customer, Project } from '../../lib/database';
-import Header from '../components/Header';
+import Header from '../Header';
 
 export default function Dashboard() {
   const [financialSummary, setFinancialSummary] = useState({
@@ -248,40 +248,70 @@ export default function Dashboard() {
                   <p>Henüz müşteri bulunmamaktadır.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="pb-3 pr-4">Müşteri Adı</th>
-                        <th className="pb-3 pr-4">İletişim</th>
-                        <th className="pb-3 text-right">İşlemler</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {customers.slice(0, 5).map((customer) => (
-                        <tr key={customer.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 pr-4 font-medium">
-                            <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:underline">
-                              {customer.name}
-                            </Link>
-                            {customer.company_name && (
-                              <div className="text-sm text-gray-500">{customer.company_name}</div>
-                            )}
-                          </td>
-                          <td className="py-3 pr-4">
-                            {customer.email && <div className="text-sm">{customer.email}</div>}
-                            {customer.phone && <div className="text-sm text-gray-500">{customer.phone}</div>}
-                          </td>
-                          <td className="py-3 text-right">
-                            <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
-                              Görüntüle
-                            </Link>
-                          </td>
+                <>
+                  {/* Masaüstü Görünüm */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="pb-3 pr-4">Müşteri Adı</th>
+                          <th className="pb-3 pr-4">İletişim</th>
+                          <th className="pb-3 text-right">İşlemler</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {customers.slice(0, 5).map((customer) => (
+                          <tr key={customer.id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 pr-4 font-medium">
+                              <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:underline">
+                                {customer.name}
+                              </Link>
+                              {customer.company_name && (
+                                <div className="text-sm text-gray-500">{customer.company_name}</div>
+                              )}
+                            </td>
+                            <td className="py-3 pr-4">
+                              {customer.email && <div className="text-sm">{customer.email}</div>}
+                              {customer.phone && <div className="text-sm text-gray-500">{customer.phone}</div>}
+                            </td>
+                            <td className="py-3 text-right">
+                              <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
+                                Görüntüle
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobil Görünüm */}
+                  <div className="md:hidden">
+                    {customers.slice(0, 5).map((customer) => (
+                      <div key={customer.id} className="border-b py-3 px-2">
+                        <div className="mb-2">
+                          <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:underline font-medium">
+                            {customer.name}
+                          </Link>
+                          {customer.company_name && (
+                            <p className="text-sm text-gray-500">{customer.company_name}</p>
+                          )}
+                        </div>
+
+                        <div className="text-sm mb-2">
+                          {customer.email && <div>{customer.email}</div>}
+                          {customer.phone && <div className="text-gray-500">{customer.phone}</div>}
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Link href={`/customers/${customer.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
+                            Görüntüle
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
 
               <div className="mt-6">
@@ -298,7 +328,7 @@ export default function Dashboard() {
             <div className="mt-8 bg-white rounded-lg shadow-md p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Hızlı İşlemler</h3>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <Link
                   href="/transactions/new?type=income"
                   className="bg-green-100 hover:bg-green-200 p-4 rounded-lg text-center transition-colors"
