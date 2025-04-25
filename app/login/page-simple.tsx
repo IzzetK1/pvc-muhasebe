@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!username || !password) {
       setError("Kullanıcı adı ve şifre gereklidir");
       return;
@@ -67,8 +67,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Basit şifre kontrolü - gerçek uygulamada güvenli değil, sadece demo amaçlı
-      if (user.username === username && password === "admin123") {
+      // Basit şifre kontrolü
+      if (user.username === "admin" && password === "admin123") {
         // Kullanıcı bilgilerini localStorage'a kaydet
         localStorage.setItem('user', JSON.stringify({
           id: user.id,
@@ -83,7 +83,6 @@ export default function LoginPage() {
       } else {
         setError("Geçersiz kullanıcı adı veya şifre");
         setLoading(false);
-        return;
       }
     } catch (error) {
       console.error("Giriş hatası:", error);
